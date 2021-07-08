@@ -3,11 +3,11 @@
     <button
       type="button"
       class="list-group-item list-group-item-action"
-      v-for="(stock, index) in stocks"
+      v-for="(symbol, index) in symbols"
       :key="index"
-      @click="$emit('selectStock', stock)"
+      @click="$emit('selectStock', symbol)"
     >
-      {{ stock }}
+      {{ symbol }}
     </button>
   </div>
 </template>
@@ -16,7 +16,7 @@
 export default {
   name: "stocks-list",
   props: {
-    stocks: {
+    symbols: {
       type: Array,
       required: true,
     },

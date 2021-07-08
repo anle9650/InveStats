@@ -49,6 +49,14 @@ export default {
       type: String,
       required: true,
     },
+    intradayPrices: {
+      type: String,
+      required: true
+    },
+    dailyPrices: {
+      type: String,
+      required: true
+    }
   },
   data() {
     return {
@@ -142,42 +150,6 @@ export default {
       priceData = priceData.sort((a, b) => a.x - b.x);
       return priceData;
     },
-    async fetchWeeklyPrices() {
-      const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY&symbol=${this.symbol}&apikey=${this.apiKey}`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
-      let priceData = [];
-      for (var datetime in json["Weekly Time Series"]) {
-        priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Weekly Time Series"][datetime]["4. close"],
-        });
-      }
-      priceData = priceData.sort((a, b) => a.x - b.x);
-      return priceData;
-    },
-    async fetchMonthlyPrices() {
-      const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=${this.symbol}&apikey=${this.apiKey}`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
-      let priceData = [];
-      for (var datetime in json["Monthly Time Series"]) {
-        priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Monthly Time Series"][datetime]["4. close"],
-        });
-      }
-      priceData = priceData.sort((a, b) => a.x - b.x);
-      return priceData;
-    },
     slicePriceData(priceData, startDate) {
       let startIndex = priceData.findIndex((dataPoint) => {
         let date = new Date(dataPoint.x);
@@ -187,15 +159,6 @@ export default {
           date.getDate() === startDate.getDate()
         );
       });
-      // if (startIndex == -1) {
-      //   startIndex = priceData.findIndex((dataPoint) => {
-      //     let date = new Date(dataPoint.x);
-      //     return (
-      //       date.getFullYear() === startDate.getFullYear() &&
-      //       date.getMonth() === startDate.getMonth()
-      //     );
-      //   });
-      // }
       return priceData.slice(startIndex);
     },
     updateSeries(priceData) {
