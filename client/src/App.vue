@@ -73,6 +73,9 @@ export default {
       series: [44, 55, 41, 17, 15],
     };
   },
+  created() {
+    this.setCurrentData[this.stocks[0].symbol];
+  },
   computed: {
     symbols() {
       let symbols = [];

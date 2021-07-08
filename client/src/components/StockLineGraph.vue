@@ -49,14 +49,14 @@ export default {
       type: String,
       required: true,
     },
-    intradayPrices: {
-      type: String,
-      required: true
-    },
-    dailyPrices: {
-      type: String,
-      required: true
-    }
+    // intradayPrices: {
+    //   type: String,
+    //   required: true
+    // },
+    // dailyPrices: {
+    //   type: String,
+    //   required: true
+    // }
   },
   data() {
     return {
