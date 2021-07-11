@@ -1,10 +1,6 @@
 <template>
   <div>
-    <apexchart
-      type="line"
-      :options="options"
-      :series="series"
-    ></apexchart>
+    <apexchart type="line" :options="options" :series="series"></apexchart>
     <div class="d-flex justify-content-between">
       <button
         type="button"
@@ -34,33 +30,39 @@
       >
         1Y
       </button>
-      <button type="button" class="btn btn-secondary btn-sm" @click="showAll">
-        All
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        @click="showPast5Years"
+      >
+        5Y
       </button>
     </div>
   </div>
 </template>
 
 <script>
+const WEEKLY_TRADING_DAYS = 5;
+const MONTHLY_TRADING_DAYS = 21;
+const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "stock-line-graph",
   props: {
-    symbol: {
+    name: {
       type: String,
       required: true,
     },
-    // intradayPrices: {
-    //   type: String,
-    //   required: true
-    // },
-    // dailyPrices: {
-    //   type: String,
-    //   required: true
-    // }
+    intradayPrices: {
+      type: Array,
+      required: true,
+    },
+    dailyPrices: {
+      type: Array,
+      required: true,
+    },
   },
   data() {
     return {
-      apiKey: "demo",
       options: {
         chart: {
           id: "stock-line-graph",
@@ -77,8 +79,7 @@ export default {
         subtitle: {
           text: undefined,
           style: {
-            color: '#9699a2',
-            fontSize: "18px",
+            color: "#9699a2",
           },
         },
         xaxis: {
@@ -99,91 +100,84 @@ export default {
         },
       },
       series: [],
-      priceChange: null,
-      percentChange: null,
+      // priceChange: null,
+      // percentChange: null,
     };
   },
   created() {
-    this.options.title.text = this.symbol;
+    this.options = {
+      ...this.options,
+      ...{
+        title: {
+          ...this.options.title,
+          ...{
+            text: this.name,
+          },
+        },
+      },
+    };
     this.showPastDay();
   },
   watch: {
-    symbol(newSymbol) {
-      this.options.title.text = newSymbol;
+    name(newName) {
+      this.options = {
+        ...this.options,
+        ...{
+          title: {
+            ...this.options.title,
+            ...{
+              text: newName,
+            },
+          },
+        },
+      };
+    },
+    intradayPrices() {
       this.showPastDay();
     },
   },
+  computed: {
+    priceChange() {
+      if (this.series.length > 0) {
+        let startPrice = this.series[0].data[0].y,
+          endPrice = this.series[0].data.slice(-1)[0].y;
+        return (endPrice - startPrice).toFixed(4);
+      }
+      return 0;
+    },
+    percentChange() {
+      if (this.series.length > 0) {
+        let startPrice = this.series[0].data[0].y;
+        if (startPrice != 0)
+          return ((this.priceChange / startPrice) * 100).toFixed(2);
+      }
+      return 0;
+    },
+  },
   methods: {
-    async fetchIntradayPrices() {
-      const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${this.symbol}&interval=5min&apikey=${this.apiKey}`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
-      let priceData = [];
-      for (var datetime in json["Time Series (5min)"]) {
-        priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Time Series (5min)"][datetime]["4. close"],
-        });
-      }
-      priceData = priceData.sort((a, b) => a.x - b.x);
-      return priceData;
-    },
-    async fetchDailyPrices() {
-      const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${this.symbol}&outputsize=full&apikey=${this.apiKey}`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
-      let priceData = [];
-      for (var datetime in json["Time Series (Daily)"]) {
-        priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Time Series (Daily)"][datetime]["4. close"],
-        });
-      }
-      priceData = priceData.sort((a, b) => a.x - b.x);
-      return priceData;
-    },
-    slicePriceData(priceData, startDate) {
-      let startIndex = priceData.findIndex((dataPoint) => {
-        let date = new Date(dataPoint.x);
-        return (
-          date.getFullYear() === startDate.getFullYear() &&
-          date.getMonth() === startDate.getMonth() &&
-          date.getDate() === startDate.getDate()
-        );
-      });
-      return priceData.slice(startIndex);
-    },
     updateSeries(priceData) {
       let series = {
-        name: this.symbol,
+        name: this.name,
         data: priceData,
       };
       this.series = [series];
     },
-    updatePriceChange(priceData) {
-      let startDatePrice = priceData[0].y,
-        endDatePrice = priceData[priceData.length - 1].y;
-      this.priceChange = (endDatePrice - startDatePrice).toFixed(4);
-      this.percentChange = ((this.priceChange / startDatePrice) * 100).toFixed(
-        2
-      );
-    },
-    updateOptions(priceData, timeFrame) {
+    // updatePriceChange(priceData) {
+    //   let startDatePrice = priceData[0].y,
+    //     endDatePrice = priceData[priceData.length - 1].y;
+    //   this.priceChange = (endDatePrice - startDatePrice).toFixed(4);
+    //   this.percentChange = ((this.priceChange / startDatePrice) * 100).toFixed(
+    //     2
+    //   );
+    // },
+    updateOptions(timeFrame) {
       const GREEN = "#00E396";
       const RED = "#EA3546";
 
       var lineColor, subtitleColor, subtitleText, dateFormat;
 
       // Set line and text color based on change in price.
-      this.updatePriceChange(priceData);
+      // this.updatePriceChange(priceData);
       if (this.priceChange >= 0) {
         lineColor = GREEN;
         subtitleColor = GREEN;
@@ -199,11 +193,11 @@ export default {
         this.percentChange
       )}%) ${timeFrame}`;
 
-      // Set the tooltip to only show the full datetime when today's data is displayed.
-      if (timeFrame === "Today") dateFormat = "MMM dd yyyy, h:mmTT";
+      // Set the tooltip to only show the full datetime when yesterday's data is displayed.
+      if (timeFrame === "Yesterday") dateFormat = "h:mm TT";
       else dateFormat = "MMM dd yyyy";
 
-     // Update options.
+      // Update options.
       this.options = {
         ...this.options,
         ...{
@@ -211,7 +205,7 @@ export default {
           subtitle: {
             text: subtitleText,
             style: {
-                color: subtitleColor,
+              color: subtitleColor,
             },
           },
           tooltip: {
@@ -222,49 +216,28 @@ export default {
         },
       };
     },
-    updateChart(priceData, startDate, timeFrame) {
-      let newPriceData = this.slicePriceData(priceData, startDate);
-      this.updateSeries(newPriceData);
-      this.updateOptions(newPriceData, timeFrame);
+    updateChart(priceData, timeFrame) {
+      this.updateSeries(priceData);
+      this.updateOptions(timeFrame);
     },
     showPastDay() {
-      this.fetchIntradayPrices().then((priceData) => {
-        let startDate = new Date(priceData[0].x);
-        this.updateChart(priceData, startDate, "Today");
-      });
+      this.updateChart(this.intradayPrices, "Yesterday");
     },
     showPastWeek() {
-      this.fetchDailyPrices().then((priceData) => {
-        let endDate = new Date(priceData[priceData.length - 1].x),
-          lastWeek = new Date(
-            endDate.getFullYear(),
-            endDate.getMonth(),
-            endDate.getDate() - 7
-          );
-        this.updateChart(priceData, lastWeek, "Past Week");
-      });
+      let pastWeekPrices = this.dailyPrices.slice(-WEEKLY_TRADING_DAYS);
+      this.updateChart(pastWeekPrices, "Past Week");
     },
     showPastMonth() {
-      this.fetchDailyPrices().then((priceData) => {
-        let endDate = new Date(priceData[priceData.length - 1].x),
-          dateOffset = 24 * 60 * 60 * 1000 * 28,
-          lastMonth = new Date(endDate.getTime() - dateOffset);
-        this.updateChart(priceData, lastMonth, "Past Month");
-      });
+      let pastMonthPrices = this.dailyPrices.slice(-MONTHLY_TRADING_DAYS);
+      this.updateChart(pastMonthPrices, "Past Month");
     },
     showPastYear() {
-      this.fetchDailyPrices().then((priceData) => {
-        let endDate = new Date(priceData[priceData.length - 1].x),
-          dateOffset = 24 * 60 * 60 * 1000 * 52 * 7,
-          lastYear = new Date(endDate.getTime() - dateOffset);
-        this.updateChart(priceData, lastYear, "Past Year");
-      });
+      let pastYearPrices = this.dailyPrices.slice(-YEARLY_TRADING_DAYS);
+      this.updateChart(pastYearPrices, "Past Year");
     },
-    showAll() {
-      this.fetchDailyPrices().then((priceData) => {
-        let startDate = new Date(priceData[0].x);
-        this.updateChart(priceData, startDate, "All Time");
-      });
+    showPast5Years() {
+      let past5YearPrices = this.dailyPrices.slice(-YEARLY_TRADING_DAYS * 5);
+      this.updateChart(past5YearPrices, "Past 5 Years");
     },
   },
 };
