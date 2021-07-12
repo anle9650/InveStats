@@ -100,37 +100,15 @@ export default {
         },
       },
       series: [],
-      // priceChange: null,
-      // percentChange: null,
     };
   },
   created() {
-    this.options = {
-      ...this.options,
-      ...{
-        title: {
-          ...this.options.title,
-          ...{
-            text: this.name,
-          },
-        },
-      },
-    };
+    this.options.title.text = this.name;
     this.showPastDay();
   },
   watch: {
     name(newName) {
-      this.options = {
-        ...this.options,
-        ...{
-          title: {
-            ...this.options.title,
-            ...{
-              text: newName,
-            },
-          },
-        },
-      };
+      this.options.title.text = newName;
     },
     intradayPrices() {
       this.showPastDay();
@@ -162,22 +140,14 @@ export default {
       };
       this.series = [series];
     },
-    // updatePriceChange(priceData) {
-    //   let startDatePrice = priceData[0].y,
-    //     endDatePrice = priceData[priceData.length - 1].y;
-    //   this.priceChange = (endDatePrice - startDatePrice).toFixed(4);
-    //   this.percentChange = ((this.priceChange / startDatePrice) * 100).toFixed(
-    //     2
-    //   );
-    // },
-    updateOptions(timeFrame) {
+    updateChart(priceData, timeFrame) {
       const GREEN = "#00E396";
       const RED = "#EA3546";
-
       var lineColor, subtitleColor, subtitleText, dateFormat;
+      
+      this.updateSeries(priceData);
 
       // Set line and text color based on change in price.
-      // this.updatePriceChange(priceData);
       if (this.priceChange >= 0) {
         lineColor = GREEN;
         subtitleColor = GREEN;
@@ -215,10 +185,6 @@ export default {
           },
         },
       };
-    },
-    updateChart(priceData, timeFrame) {
-      this.updateSeries(priceData);
-      this.updateOptions(timeFrame);
     },
     showPastDay() {
       this.updateChart(this.intradayPrices, "Yesterday");

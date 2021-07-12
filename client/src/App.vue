@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <div class="row">
-      <div class="col-lg-3 mt-4">
+    <div class="row mt-4">
+      <div class="col-lg-3">
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
@@ -14,7 +14,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-3 mt-4">
+      <div class="col-lg-3">
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
@@ -27,7 +27,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-3 mt-4">
+      <div class="col-lg-3">
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
@@ -44,7 +44,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-3 mt-4">
+      <div class="col-lg-3">
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
@@ -63,8 +63,8 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-lg-8 mt-4">
+    <div class="row mt-4">
+      <div class="col-lg-8">
         <div
           class="shadow card"
           v-if="
@@ -80,6 +80,15 @@
             ></stock-line-graph>
           </div>
         </div>
+        <div
+          class="shadow card mt-3 mb-4"
+          v-if="
+            selectedIntradayPrices.length != 0 &&
+            selectedDailyPrices.length != 0
+          "
+        >
+          <div class="card-body">...</div>
+        </div>
         <transition :duration="{ enter: 5000, leave: 0 }">
           <div
             v-if="
@@ -94,14 +103,14 @@
           </div>
         </transition>
       </div>
-      <div class="col-lg-4 mt-4">
-        <div class="shadow card">
+      <div class="col-lg-4">
+        <div class="mb-3">
+          <stock-search-buy @buy-stock="addStock"></stock-search-buy>
+        </div>
+        <div class="shadow card mb-3">
           <div class="card-body">
-            <h5 class="card-title mt-2">
-              <span class="d-flex w-100 justify-content-between">
-                Stocks 
-                <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
-              </span>
+            <h5 class="card-title">
+              <span class="d-flex w-100 justify-content-between"> Stocks </span>
             </h5>
           </div>
           <stocks-list
@@ -111,16 +120,16 @@
             :endPrices="endPricesToday"
             @select-stock="(index) => (currentStockIndex = index)"
           ></stocks-list>
-          <apexchart
-            type="donut"
-            :options="donutChartOptions"
-            :series="allStockHoldings"
-            @data-point-selection="
-              (event, chartContext, config) =>
-                (currentStockIndex = config.dataPointIndex)
-            "
-          ></apexchart>
         </div>
+        <apexchart
+          type="donut"
+          :options="donutChartOptions"
+          :series="allStockHoldings"
+          @data-point-selection="
+            (event, chartContext, config) =>
+              (currentStockIndex = config.dataPointIndex)
+          "
+        ></apexchart>
       </div>
     </div>
   </div>
@@ -129,17 +138,20 @@
 <script>
 import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
+import StockSearchBuy from "./components/StockSearchBuy";
 const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "App",
   components: {
     StockLineGraph,
     StocksList,
+    StockSearchBuy,
   },
   data() {
     return {
-      upArrow: "bi bi-arrow-up-circle-fill",
-      downArrow: "bi bi-arrow-down-circle-fill",
+      apiKey: '1V4VMMH8KUPV4I15',
+      upArrow: "bi bi-arrow-up-circle",
+      downArrow: "bi bi-arrow-down-circle",
       stocks: [
         {
           symbol: "IBM",
@@ -219,12 +231,20 @@ export default {
     Promise.all(fetchPromises);
 
     // Set donut chart labels.
-    this.donutChartOptions = {
-      ...this.donutChartOptions,
-      ...{
-        labels: this.allSymbols,
+    this.donutChartOptions.labels = this.allSymbols;
+  },
+  watch: {
+    stocks: {
+      deep: true,
+      handler() {
+        this.donutChartOptions = {
+          ...this.donutChartOptions,
+          ...{
+            labels: this.allSymbols,
+          },
+        };
       },
-    };
+    },
   },
   computed: {
     allSymbols() {
@@ -243,59 +263,52 @@ export default {
       return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
     },
     high52Week() {
-      if (this.pastYearPrices.length > 0) {
-        let highPrice = Math.max.apply(
-          Math,
-          this.pastYearPrices.map((priceData) => priceData.y)
-        );
-        return highPrice;
-      }
-      return 0;
+      if (this.pastYearPrices.length === 0) return 0;
+
+      let highPrice = Math.max.apply(
+        Math,
+        this.pastYearPrices.map((priceData) => priceData.y)
+      );
+      return highPrice;
     },
     low52Week() {
-      if (this.pastYearPrices.length > 0) {
-        let lowPrice = Math.min.apply(
-          Math,
-          this.pastYearPrices.map((priceData) => priceData.y)
-        );
-        return lowPrice;
-      }
-      return 0;
+      if (this.pastYearPrices.length === 0) return 0;
+
+      let lowPrice = Math.min.apply(
+        Math,
+        this.pastYearPrices.map((priceData) => priceData.y)
+      );
+      return lowPrice;
     },
     priceYTD() {
-      if (this.pastYearPrices.length > 0) {
-        let yearStartPrice = this.pastYearPrices[0].y,
-          yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
-        return (yearEndPrice - yearStartPrice).toFixed(2);
-      }
-      return 0;
+      if (this.pastYearPrices.length === 0) return 0;
+
+      let yearStartPrice = this.pastYearPrices[0].y,
+        yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
+      return (yearEndPrice - yearStartPrice).toFixed(2);
     },
     percentYTD() {
-      if (this.pastYearPrices.length > 0) {
-        let yearStartPrice = this.pastYearPrices[0].y,
-          yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
-        return (
-          ((yearEndPrice - yearStartPrice) / yearStartPrice) *
-          100
-        ).toFixed(2);
-      }
-      return 0;
+      if (this.pastYearPrices.length === 0) return 0;
+
+      let yearStartPrice = this.pastYearPrices[0].y,
+        yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
+      return (((yearEndPrice - yearStartPrice) / yearStartPrice) * 100).toFixed(
+        2
+      );
     },
     priceSinceInception() {
-      if (this.selectedDailyPrices.length > 0) {
-        let startPrice = this.selectedDailyPrices[0].y,
-          endPrice = this.selectedDailyPrices.slice(-1)[0].y;
-        return (endPrice - startPrice).toFixed(2);
-      }
-      return 0;
+      if (this.selectedDailyPrices.length === 0) return 0;
+
+      let startPrice = this.selectedDailyPrices[0].y,
+        endPrice = this.selectedDailyPrices.slice(-1)[0].y;
+      return (endPrice - startPrice).toFixed(2);
     },
     percentSinceInception() {
-      if (this.selectedDailyPrices.length > 0) {
-        let startPrice = this.selectedDailyPrices[0].y,
-          endPrice = this.selectedDailyPrices.slice(-1)[0].y;
-        return (((endPrice - startPrice) / startPrice) * 100).toFixed(2);
-      }
-      return 0;
+      if (this.selectedDailyPrices.length === 0) return 0;
+
+      let startPrice = this.selectedDailyPrices[0].y,
+        endPrice = this.selectedDailyPrices.slice(-1)[0].y;
+      return (((endPrice - startPrice) / startPrice) * 100).toFixed(2);
     },
     allStockShares() {
       let allStockShares = this.stocks.map((stock) => {
@@ -306,31 +319,28 @@ export default {
     },
     startPricesToday() {
       let startPrices = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length > 0) {
-          let startPrice = stock.intradayPrices[0].y;
-          return startPrice;
-        }
-        return 0;
+        if (stock.intradayPrices.length === 0) return 0;
+
+        let startPrice = stock.intradayPrices[0].y;
+        return startPrice;
       });
       return startPrices;
     },
     endPricesToday() {
       let endPrices = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length > 0) {
-          let endPrice = stock.intradayPrices.slice(-1)[0].y;
-          return endPrice;
-        }
-        return 0;
+        if (stock.intradayPrices.length === 0) return 0;
+
+        let endPrice = stock.intradayPrices.slice(-1)[0].y;
+        return endPrice;
       });
       return endPrices;
     },
     allStockHoldings() {
       let prices = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length > 0) {
-          let currentPrice = stock.intradayPrices.slice(-1)[0].y;
-          return stock.shares * currentPrice;
-        }
-        return 0;
+        if (stock.intradayPrices.length === 0) return 0;
+
+        let currentPrice = stock.intradayPrices.slice(-1)[0].y;
+        return stock.shares * currentPrice;
       });
       return prices;
     },
@@ -339,7 +349,7 @@ export default {
     async fetchIntradayPrices(symbol) {
       const json = await fetch(
         `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${
-          symbol === "IBM" ? "demo" : "1V4VMMH8KUPV4I15"
+          symbol === "IBM" ? "demo" : this.apiKey
         }`
       )
         .then((response) => response.json())
@@ -361,7 +371,7 @@ export default {
         `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full&apikey=${
           symbol === "IBM" || symbol === "TSCO.LON" || symbol === "SHOP.TRT"
             ? "demo"
-            : "1V4VMMH8KUPV4I15"
+            : this.apiKey
         }`
       )
         .then((response) => response.json())
@@ -378,21 +388,62 @@ export default {
       priceData = priceData.sort((a, b) => a.x - b.x);
       return priceData;
     },
+    addStock(symbol, shares) {
+      let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
+      if (existingStock) {
+        this.stocks = this.stocks.map((stock) => {
+          if (stock != existingStock) return stock;
+          return {
+            ...stock,
+            ...{
+              shares: stock.shares + parseFloat(shares),
+            },
+          };
+        });
+        return;
+      }
+
+      var intradayPrices, dailyPrices;
+      let shortenedSymbol = symbol.split(".")[0];
+
+      let fetchPromises = [
+        this.fetchIntradayPrices(shortenedSymbol).then(
+          (priceData) => (intradayPrices = priceData)
+        ),
+        this.fetchDailyPrices(symbol).then(
+          (priceData) => (dailyPrices = priceData)
+        )
+      ];
+
+      Promise.all(fetchPromises).then(() => {
+        this.stocks.push({
+          symbol: symbol,
+          shares: parseFloat(shares),
+          intradayPrices: intradayPrices,
+          dailyPrices: dailyPrices,
+        });
+      });
+    },
   },
 };
 </script>
 
 <style>
-.bi-graph-up, .bi-arrow-up-circle-fill {
+.bi-graph-up,
+.bi-arrow-up-circle {
   color: green;
 }
-.bi-graph-down, .bi-arrow-down-circle-fill {
+.bi-graph-down,
+.bi-arrow-down-circle {
   color: red;
 }
 </style>
 
 <style scoped>
-.bi-graph-up, .bi-graph-down, .bi-arrow-up-circle-fill, .bi-arrow-down-circle-fill {
+.bi-graph-up,
+.bi-graph-down,
+.bi-arrow-up-circle,
+.bi-arrow-down-circle {
   font-size: 2rem;
 }
 </style>

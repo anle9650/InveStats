@@ -17,10 +17,21 @@
         </small>
       </div>
       <p class="mb-1">${{ endPrices[index] }}</p>
-      <small class="text-muted">
-        {{ stockShares[index] }}
-        {{ stockShares[index] === 1 ? "share" : "shares" }}
-      </small>
+      <div class="d-flex w-100 justify-content-between">
+        <small class="text-muted">
+          {{ stockShares[index] }}
+          {{ stockShares[index] === 1 ? "share" : "shares" }}
+        </small>
+        <button
+          class="btn btn-outline-primary btn-sm"
+          data-bs-target="#buySharesModal"
+          data-bs-toggle="modal"
+          data-bs-dismiss="modal"
+          @click="selectedSymbol = stock.symbol; shares = null;"
+        >
+          Buy
+        </button>
+      </div>
     </a>
   </div>
 </template>
@@ -49,8 +60,8 @@ export default {
   emits: ["selectStock"],
   data() {
     return {
-      upArrow: "bi bi-arrow-up-circle-fill",
-      downArrow: "bi bi-arrow-down-circle-fill",
+      upArrow: "bi bi-arrow-up-circle",
+      downArrow: "bi bi-arrow-down-circle",
     };
   },
   methods: {
@@ -60,8 +71,8 @@ export default {
     getPercentChange(stockIndex) {
       let priceChange = this.getPriceChange(stockIndex),
         startPrice = this.startPrices[stockIndex];
-      if (startPrice != 0) return ((priceChange / startPrice) * 100).toFixed(2);
-      return 0;
+      if (startPrice === 0) return 0;
+      return ((priceChange / startPrice) * 100).toFixed(2);
     },
   },
 };
