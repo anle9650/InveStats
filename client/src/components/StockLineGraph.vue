@@ -144,7 +144,7 @@ export default {
       const GREEN = "#00E396";
       const RED = "#EA3546";
       var lineColor, subtitleColor, subtitleText, dateFormat;
-      
+
       this.updateSeries(priceData);
 
       // Set line and text color based on change in price.
@@ -187,7 +187,16 @@ export default {
       };
     },
     showPastDay() {
-      this.updateChart(this.intradayPrices, "Yesterday");
+      let yesterday = new Date(
+          this.intradayPrices[this.intradayPrices.length - 1].x
+        ),
+        yesterdayStartIndex = this.intradayPrices.findIndex((priceData) => {
+          let datetime = new Date(priceData.x);
+          return datetime.getDate() === yesterday.getDate();
+        }),
+        yesterdayPrices = this.intradayPrices.slice(yesterdayStartIndex);
+
+      this.updateChart(yesterdayPrices, "Yesterday");
     },
     showPastWeek() {
       let pastWeekPrices = this.dailyPrices.slice(-WEEKLY_TRADING_DAYS);

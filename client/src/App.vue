@@ -66,6 +66,15 @@
     <div class="row mt-4">
       <div class="col-lg-8">
         <div
+          class="d-flex justify-content-center"
+          v-if="loading && selectedIntradayPrices.length === 0"
+        >
+          <div class="spinner-border me-2" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <span>Loading...</span>
+        </div>
+        <div
           class="shadow card"
           v-if="
             selectedIntradayPrices.length != 0 &&
@@ -87,38 +96,53 @@
             selectedDailyPrices.length != 0
           "
         >
-          <div class="card-body">...</div>
+          <div class="card-body">
+            <h5 class="card-title">Stats</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">An item</li>
+              <li class="list-group-item">A second item</li>
+              <li class="list-group-item">A third item</li>
+              <li class="list-group-item">A fourth item</li>
+              <li class="list-group-item">And a fifth one</li>
+            </ul>
+          </div>
         </div>
-        <transition :duration="{ enter: 5000, leave: 0 }">
+        <transition name="slide-fade">
           <div
             v-if="
-              selectedIntradayPrices.length === 0 ||
-              selectedDailyPrices.length === 0
+              !loading &&
+              (selectedIntradayPrices.length === 0 ||
+                selectedDailyPrices.length === 0)
             "
             class="alert alert-danger"
             role="alert"
           >
-            Maximum API calls exceeded. Please try again in 5 minutes, or use
+            Maximum API calls exceeded. Please try again in 60 seconds, or use
             demo stock (IBM).
           </div>
         </transition>
       </div>
       <div class="col-lg-4">
         <div class="mb-3">
-          <stock-search-buy @buy-stock="addStock"></stock-search-buy>
+          <stock-search
+            :stocksOwned="allSymbols"
+            :stockShares="allStockShares"
+            @buy-stock="addShares"
+            @sell-stock="removeShares"
+          ></stock-search>
         </div>
         <div class="shadow card mb-3">
           <div class="card-body">
-            <h5 class="card-title">
-              <span class="d-flex w-100 justify-content-between"> Stocks </span>
-            </h5>
+            <h5 class="card-title">Stocks</h5>
           </div>
           <stocks-list
             :symbols="allSymbols"
             :stockShares="allStockShares"
-            :startPrices="startPricesToday"
-            :endPrices="endPricesToday"
-            @select-stock="(index) => (currentStockIndex = index)"
+            :startPrices="startPricesYesterday"
+            :endPrices="endPricesYesterday"
+            @select-stock="(index) => (selectedStockIndex = index)"
+            @buy-stock="addShares"
+            @sell-stock="removeShares"
           ></stocks-list>
         </div>
         <apexchart
@@ -127,35 +151,58 @@
           :series="allStockHoldings"
           @data-point-selection="
             (event, chartContext, config) =>
-              (currentStockIndex = config.dataPointIndex)
+              (selectedStockIndex = config.dataPointIndex)
           "
         ></apexchart>
       </div>
     </div>
+    <transition name="slide-fade">
+      <div
+        class="
+          alert alert-success alert-dismissible
+          fade
+          show
+          position-sticky
+          bottom-0
+        "
+        role="alert"
+        v-if="transactionComplete"
+      >
+        <i class="bi bi-check-circle me-2"></i>
+        <strong>Success</strong> Your transaction is complete.
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script>
 import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
-import StockSearchBuy from "./components/StockSearchBuy";
+import StockSearch from "./components/StockSearch";
 const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "App",
   components: {
     StockLineGraph,
     StocksList,
-    StockSearchBuy,
+    StockSearch,
   },
   data() {
     return {
-      apiKey: '1V4VMMH8KUPV4I15',
+      loading: true,
+      apiKey: "1V4VMMH8KUPV4I15",
       upArrow: "bi bi-arrow-up-circle",
       downArrow: "bi bi-arrow-down-circle",
       stocks: [
         {
           symbol: "IBM",
-          shares: 2,
+          shares: 1,
           intradayPrices: [],
           dailyPrices: [],
         },
@@ -172,7 +219,8 @@ export default {
           dailyPrices: [],
         },
       ],
-      currentStockIndex: 0,
+      selectedStockIndex: 0,
+      transactionComplete: false,
       donutChartOptions: {
         title: {
           text: "Holdings Summary",
@@ -182,7 +230,7 @@ export default {
         legend: false,
         tooltip: {
           y: {
-            formatter: (value) => "$" + value,
+            formatter: (value) => "$" + value.toFixed(2),
           },
         },
         plotOptions: {
@@ -233,7 +281,34 @@ export default {
     // Set donut chart labels.
     this.donutChartOptions.labels = this.allSymbols;
   },
+  mounted() {
+    setTimeout(() => (this.loading = false), 3000);
+  },
   watch: {
+    selectedStockIndex(selectedSymbol) {
+      let fetchPromises = [];
+      if (this.selectedIntradayPrices.length === 0) {
+        let shortenedSymbol = this.selectedSymbol.split(".")[0];
+        fetchPromises.push(
+          this.fetchIntradayPrices(shortenedSymbol).then(
+            (priceData) =>
+              (this.stocks[selectedSymbol].intradayPrices = priceData)
+          )
+        );
+      }
+      if (this.selectedDailyPrices.length === 0) {
+        fetchPromises.push(
+          this.fetchIntradayPrices(this.selectedSymbol).then(
+            (priceData) => (this.stocks[selectedSymbol].dailyPrices = priceData)
+          )
+        );
+      }
+      Promise.all(fetchPromises).catch((error) => console.log(error));
+    },
+    transactionComplete(status) {
+      if (status === true)
+        setTimeout(() => (this.transactionComplete = false), 3000);
+    },
     stocks: {
       deep: true,
       handler() {
@@ -251,13 +326,13 @@ export default {
       return this.stocks.map((stock) => stock.symbol);
     },
     selectedSymbol() {
-      return this.stocks[this.currentStockIndex].symbol;
+      return this.stocks[this.selectedStockIndex].symbol;
     },
     selectedIntradayPrices() {
-      return this.stocks[this.currentStockIndex].intradayPrices;
+      return this.stocks[this.selectedStockIndex].intradayPrices;
     },
     selectedDailyPrices() {
-      return this.stocks[this.currentStockIndex].dailyPrices;
+      return this.stocks[this.selectedStockIndex].dailyPrices;
     },
     pastYearPrices() {
       return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
@@ -281,20 +356,38 @@ export default {
       return lowPrice;
     },
     priceYTD() {
-      if (this.pastYearPrices.length === 0) return 0;
+      if (
+        this.pastYearPrices.length === 0 ||
+        this.selectedIntradayPrices.length === 0
+      )
+        return null;
 
-      let yearStartPrice = this.pastYearPrices[0].y,
-        yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
-      return (yearEndPrice - yearStartPrice).toFixed(2);
+      let currentYear = new Date(
+          this.pastYearPrices.slice(-1)[0].x
+        ).getFullYear(),
+        yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
+          let datetime = new Date(priceData.x);
+          return datetime.getFullYear() === currentYear;
+        }),
+        yearStartPrice = this.pastYearPrices[yearStartIndex].y,
+        currentPrice = this.selectedIntradayPrices.slice(-1)[0].y;
+
+      return (currentPrice - yearStartPrice).toFixed(2);
     },
     percentYTD() {
       if (this.pastYearPrices.length === 0) return 0;
 
-      let yearStartPrice = this.pastYearPrices[0].y,
-        yearEndPrice = this.pastYearPrices.slice(-1)[0].y;
-      return (((yearEndPrice - yearStartPrice) / yearStartPrice) * 100).toFixed(
-        2
-      );
+      let currentYear = new Date(
+          this.pastYearPrices.slice(-1)[0].x
+        ).getFullYear(),
+        yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
+          let datetime = new Date(priceData.x);
+          return datetime.getFullYear() === currentYear;
+        }),
+        yearStartPrice = this.pastYearPrices[yearStartIndex].y;
+
+      if (yearStartPrice === 0) return 0;
+      return ((this.priceYTD / yearStartPrice) * 100).toFixed(2);
     },
     priceSinceInception() {
       if (this.selectedDailyPrices.length === 0) return 0;
@@ -306,9 +399,9 @@ export default {
     percentSinceInception() {
       if (this.selectedDailyPrices.length === 0) return 0;
 
-      let startPrice = this.selectedDailyPrices[0].y,
-        endPrice = this.selectedDailyPrices.slice(-1)[0].y;
-      return (((endPrice - startPrice) / startPrice) * 100).toFixed(2);
+      let startPrice = this.selectedDailyPrices[0].y;
+      if (startPrice === 0) return 0;
+      return ((this.priceSinceInception / startPrice) * 100).toFixed(2);
     },
     allStockShares() {
       let allStockShares = this.stocks.map((stock) => {
@@ -317,16 +410,21 @@ export default {
       });
       return allStockShares;
     },
-    startPricesToday() {
+    startPricesYesterday() {
       let startPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let startPrice = stock.intradayPrices[0].y;
+        let yesterday = new Date(stock.intradayPrices.slice(-1)[0].x).getDate(),
+          yesterdayStartIndex = stock.intradayPrices.findIndex((priceData) => {
+            let date = new Date(priceData.x).getDate();
+            return date === yesterday;
+          }),
+          startPrice = stock.intradayPrices[yesterdayStartIndex].y;
         return startPrice;
       });
       return startPrices;
     },
-    endPricesToday() {
+    endPricesYesterday() {
       let endPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
@@ -336,13 +434,13 @@ export default {
       return endPrices;
     },
     allStockHoldings() {
-      let prices = this.stocks.map((stock) => {
+      let holdings = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
         let currentPrice = stock.intradayPrices.slice(-1)[0].y;
         return stock.shares * currentPrice;
       });
-      return prices;
+      return holdings;
     },
   },
   methods: {
@@ -388,7 +486,7 @@ export default {
       priceData = priceData.sort((a, b) => a.x - b.x);
       return priceData;
     },
-    addStock(symbol, shares) {
+    addShares(symbol, shares) {
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock) {
         this.stocks = this.stocks.map((stock) => {
@@ -400,6 +498,7 @@ export default {
             },
           };
         });
+        this.transactionComplete = true;
         return;
       }
 
@@ -412,7 +511,7 @@ export default {
         ),
         this.fetchDailyPrices(symbol).then(
           (priceData) => (dailyPrices = priceData)
-        )
+        ),
       ];
 
       Promise.all(fetchPromises).then(() => {
@@ -422,7 +521,23 @@ export default {
           intradayPrices: intradayPrices,
           dailyPrices: dailyPrices,
         });
+        this.transactionComplete = true;
       });
+    },
+    removeShares(symbol, shares) {
+      let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
+      if (existingStock) {
+        this.stocks = this.stocks.map((stock) => {
+          if (stock != existingStock) return stock;
+          return {
+            ...stock,
+            ...{
+              shares: stock.shares - parseFloat(shares),
+            },
+          };
+        });
+        this.transactionComplete = true;
+      }
     },
   },
 };
@@ -445,5 +560,19 @@ export default {
 .bi-arrow-up-circle,
 .bi-arrow-down-circle {
   font-size: 2rem;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
 }
 </style>
