@@ -481,7 +481,7 @@ export default {
           volume: json["Time Series (5min)"][datetime]["5. volume"],
         });
       }
-      priceData = priceData.sort((a, b) => a.x - b.x);
+      priceData = priceData.sort((a, b) => a.datetime - b.datetime);
       return priceData;
     },
     async fetchDailyPrices(symbol) {
@@ -507,7 +507,7 @@ export default {
           volume: json["Time Series (Daily)"][datetime]["5. volume"],
         });
       }
-      priceData = priceData.sort((a, b) => a.x - b.x);
+      priceData = priceData.sort((a, b) => a.date - b.date);
       return priceData;
     },
     addShares(symbol, shares) {
