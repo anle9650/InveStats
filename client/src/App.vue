@@ -86,16 +86,48 @@
               :name="selectedSymbol"
               :intradayPrices="lineGraphIntradayPrices"
               :dailyPrices="lineGraphDailyPrices"
+              :timeframe="timeframe"
             ></stock-line-graph>
+            <div class="d-flex justify-content-between">
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                @click="timeframe = 'pastDay'"
+              >
+                1D
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                @click="timeframe = 'pastWeek'"
+              >
+                1W
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                @click="timeframe = 'pastMonth'"
+              >
+                1M
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                @click="timeframe = 'pastYear'"
+              >
+                1Y
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                @click="timeframe = 'past5Years'"
+              >
+                5Y
+              </button>
+            </div>
           </div>
         </div>
-        <div
-          class="shadow card mt-3 mb-4"
-          v-if="
-            selectedIntradayPrices.length != 0 &&
-            selectedDailyPrices.length != 0
-          "
-        >
+        <div class="shadow card mt-3 mb-4">
           <div class="card-body">
             <h5 class="card-title">Stats</h5>
             <ul class="list-group list-group-flush">
@@ -220,6 +252,7 @@ export default {
         },
       ],
       selectedStockIndex: 0,
+      timeframe: 'pastDay',
       transactionComplete: false,
       donutChartOptions: {
         title: {
@@ -338,19 +371,19 @@ export default {
       return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
     },
     lineGraphIntradayPrices() {
-      return this.selectedIntradayPrices.map(priceData => {
+      return this.selectedIntradayPrices.map((priceData) => {
         return {
           x: priceData.datetime,
           y: priceData.close,
-        }
+        };
       });
     },
     lineGraphDailyPrices() {
-      return this.selectedDailyPrices.map(priceData => {
+      return this.selectedDailyPrices.map((priceData) => {
         return {
           x: priceData.date,
           y: priceData.close,
-        }
+        };
       });
     },
     high52Week() {
@@ -430,7 +463,9 @@ export default {
       let startPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let yesterday = new Date(stock.intradayPrices.slice(-1)[0].datetime).getDate(),
+        let yesterday = new Date(
+            stock.intradayPrices.slice(-1)[0].datetime
+          ).getDate(),
           yesterdayStartIndex = stock.intradayPrices.findIndex((priceData) => {
             let date = new Date(priceData.datetime).getDate();
             return date === yesterday;

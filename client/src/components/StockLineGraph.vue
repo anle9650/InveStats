@@ -1,44 +1,5 @@
 <template>
-  <div>
-    <apexchart type="line" :options="options" :series="series"></apexchart>
-    <div class="d-flex justify-content-between">
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        @click="showPastDay"
-      >
-        1D
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        @click="showPastWeek"
-      >
-        1W
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        @click="showPastMonth"
-      >
-        1M
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        @click="showPastYear"
-      >
-        1Y
-      </button>
-      <button
-        type="button"
-        class="btn btn-secondary btn-sm"
-        @click="showPast5Years"
-      >
-        5Y
-      </button>
-    </div>
-  </div>
+  <apexchart type="line" :options="options" :series="series"></apexchart>
 </template>
 
 <script>
@@ -59,6 +20,11 @@ export default {
     dailyPrices: {
       type: Array,
       required: true,
+    },
+    timeframe: {
+      type: String,
+      default: "pastDay",
+      validator: (value) => ['pastDay', 'pastWeek', 'pastMonth', 'pastYear', 'past5Years'].includes(value)
     },
   },
   data() {
@@ -112,6 +78,13 @@ export default {
     },
     intradayPrices() {
       this.showPastDay();
+    },
+    timeframe(newTimeframe) {
+      if (newTimeframe == "pastDay") this.showPastDay();
+      else if (newTimeframe == "pastWeek") this.showPastWeek();
+      else if (newTimeframe == "pastMonth") this.showPastMonth();
+      else if (newTimeframe == "pastYear") this.showPastYear();
+      else if (newTimeframe == "past5Years") this.showPast5Years();
     },
   },
   computed: {
