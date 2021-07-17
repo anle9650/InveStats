@@ -84,8 +84,8 @@
           <div class="card-body">
             <stock-line-graph
               :name="selectedSymbol"
-              :intradayPrices="selectedIntradayPrices"
-              :dailyPrices="selectedDailyPrices"
+              :intradayPrices="lineGraphIntradayPrices"
+              :dailyPrices="lineGraphDailyPrices"
             ></stock-line-graph>
           </div>
         </div>
@@ -337,12 +337,28 @@ export default {
     pastYearPrices() {
       return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
     },
+    lineGraphIntradayPrices() {
+      return this.selectedIntradayPrices.map(priceData => {
+        return {
+          x: priceData.datetime,
+          y: priceData.close,
+        }
+      });
+    },
+    lineGraphDailyPrices() {
+      return this.selectedDailyPrices.map(priceData => {
+        return {
+          x: priceData.date,
+          y: priceData.close,
+        }
+      });
+    },
     high52Week() {
       if (this.pastYearPrices.length === 0) return 0;
 
       let highPrice = Math.max.apply(
         Math,
-        this.pastYearPrices.map((priceData) => priceData.y)
+        this.pastYearPrices.map((priceData) => priceData.close)
       );
       return highPrice;
     },
@@ -351,7 +367,7 @@ export default {
 
       let lowPrice = Math.min.apply(
         Math,
-        this.pastYearPrices.map((priceData) => priceData.y)
+        this.pastYearPrices.map((priceData) => priceData.close)
       );
       return lowPrice;
     },
@@ -363,14 +379,14 @@ export default {
         return null;
 
       let currentYear = new Date(
-          this.pastYearPrices.slice(-1)[0].x
+          this.pastYearPrices.slice(-1)[0].date
         ).getFullYear(),
         yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-          let datetime = new Date(priceData.x);
-          return datetime.getFullYear() === currentYear;
+          let date = new Date(priceData.date);
+          return date.getFullYear() === currentYear;
         }),
-        yearStartPrice = this.pastYearPrices[yearStartIndex].y,
-        currentPrice = this.selectedIntradayPrices.slice(-1)[0].y;
+        yearStartPrice = this.pastYearPrices[yearStartIndex].open,
+        currentPrice = this.selectedIntradayPrices.slice(-1)[0].close;
 
       return (currentPrice - yearStartPrice).toFixed(2);
     },
@@ -378,13 +394,13 @@ export default {
       if (this.pastYearPrices.length === 0) return 0;
 
       let currentYear = new Date(
-          this.pastYearPrices.slice(-1)[0].x
+          this.pastYearPrices.slice(-1)[0].date
         ).getFullYear(),
         yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-          let datetime = new Date(priceData.x);
-          return datetime.getFullYear() === currentYear;
+          let date = new Date(priceData.date);
+          return date.getFullYear() === currentYear;
         }),
-        yearStartPrice = this.pastYearPrices[yearStartIndex].y;
+        yearStartPrice = this.pastYearPrices[yearStartIndex].open;
 
       if (yearStartPrice === 0) return 0;
       return ((this.priceYTD / yearStartPrice) * 100).toFixed(2);
@@ -392,14 +408,14 @@ export default {
     priceSinceInception() {
       if (this.selectedDailyPrices.length === 0) return 0;
 
-      let startPrice = this.selectedDailyPrices[0].y,
-        endPrice = this.selectedDailyPrices.slice(-1)[0].y;
+      let startPrice = this.selectedDailyPrices[0].open,
+        endPrice = this.selectedDailyPrices.slice(-1)[0].close;
       return (endPrice - startPrice).toFixed(2);
     },
     percentSinceInception() {
       if (this.selectedDailyPrices.length === 0) return 0;
 
-      let startPrice = this.selectedDailyPrices[0].y;
+      let startPrice = this.selectedDailyPrices[0].open;
       if (startPrice === 0) return 0;
       return ((this.priceSinceInception / startPrice) * 100).toFixed(2);
     },
@@ -414,12 +430,12 @@ export default {
       let startPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let yesterday = new Date(stock.intradayPrices.slice(-1)[0].x).getDate(),
+        let yesterday = new Date(stock.intradayPrices.slice(-1)[0].datetime).getDate(),
           yesterdayStartIndex = stock.intradayPrices.findIndex((priceData) => {
-            let date = new Date(priceData.x).getDate();
+            let date = new Date(priceData.datetime).getDate();
             return date === yesterday;
           }),
-          startPrice = stock.intradayPrices[yesterdayStartIndex].y;
+          startPrice = stock.intradayPrices[yesterdayStartIndex].close;
         return startPrice;
       });
       return startPrices;
@@ -428,7 +444,7 @@ export default {
       let endPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let endPrice = stock.intradayPrices.slice(-1)[0].y;
+        let endPrice = stock.intradayPrices.slice(-1)[0].close;
         return endPrice;
       });
       return endPrices;
@@ -437,7 +453,7 @@ export default {
       let holdings = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let currentPrice = stock.intradayPrices.slice(-1)[0].y;
+        let currentPrice = stock.intradayPrices.slice(-1)[0].close;
         return stock.shares * currentPrice;
       });
       return holdings;
@@ -457,8 +473,12 @@ export default {
       let priceData = [];
       for (var datetime in json["Time Series (5min)"]) {
         priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Time Series (5min)"][datetime]["4. close"],
+          datetime: new Date(datetime.replace(/-/g, "/")).getTime(),
+          open: json["Time Series (5min)"][datetime]["1. open"],
+          high: json["Time Series (5min)"][datetime]["2. high"],
+          low: json["Time Series (5min)"][datetime]["3. low"],
+          close: json["Time Series (5min)"][datetime]["4. close"],
+          volume: json["Time Series (5min)"][datetime]["5. volume"],
         });
       }
       priceData = priceData.sort((a, b) => a.x - b.x);
@@ -479,8 +499,12 @@ export default {
       let priceData = [];
       for (var datetime in json["Time Series (Daily)"]) {
         priceData.push({
-          x: new Date(datetime.replace(/-/g, "/")).getTime(),
-          y: json["Time Series (Daily)"][datetime]["4. close"],
+          date: new Date(datetime.replace(/-/g, "/")).getTime(),
+          open: json["Time Series (Daily)"][datetime]["1. open"],
+          high: json["Time Series (Daily)"][datetime]["2. high"],
+          low: json["Time Series (Daily)"][datetime]["3. low"],
+          close: json["Time Series (Daily)"][datetime]["4. close"],
+          volume: json["Time Series (Daily)"][datetime]["5. volume"],
         });
       }
       priceData = priceData.sort((a, b) => a.x - b.x);
