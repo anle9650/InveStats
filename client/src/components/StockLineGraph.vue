@@ -24,7 +24,16 @@ export default {
     timeframe: {
       type: String,
       default: "pastDay",
-      validator: (value) => ['pastDay', 'pastWeek', 'pastMonth', 'pastYear', 'past5Years'].includes(value)
+      validator: (value) =>
+        [
+          "pastDay",
+          "pastWeek",
+          "MTD",
+          "pastMonth",
+          "YTD",
+          "pastYear",
+          "past5Years",
+        ].includes(value),
     },
   },
   data() {
@@ -32,6 +41,9 @@ export default {
       options: {
         chart: {
           id: "stock-line-graph",
+          toolbar: {
+            show: false,
+          },
           zoom: {
             enabled: false,
           },
@@ -70,7 +82,13 @@ export default {
   },
   created() {
     this.options.title.text = this.name;
-    this.showPastDay();
+    if (this.timeframe == "pastDay") this.showPastDay();
+    else if (this.timeframe == "pastWeek") this.showPastWeek();
+    else if (this.timeframe == "MTD") this.showMTD();
+    else if (this.timeframe == "pastMonth") this.showPastMonth();
+    else if (this.timeframe == "YTD") this.showYTD();
+    else if (this.timeframe == "pastYear") this.showPastYear();
+    else if (this.timeframe == "past5Years") this.showPast5Years();
   },
   watch: {
     name(newName) {
@@ -82,26 +100,27 @@ export default {
     timeframe(newTimeframe) {
       if (newTimeframe == "pastDay") this.showPastDay();
       else if (newTimeframe == "pastWeek") this.showPastWeek();
+      else if (newTimeframe == "MTD") this.showMTD();
       else if (newTimeframe == "pastMonth") this.showPastMonth();
+      else if (newTimeframe == "YTD") this.showYTD();
       else if (newTimeframe == "pastYear") this.showPastYear();
       else if (newTimeframe == "past5Years") this.showPast5Years();
     },
   },
   computed: {
     priceChange() {
-      if (this.series.length > 0) {
-        let startPrice = this.series[0].data[0].y,
-          endPrice = this.series[0].data.slice(-1)[0].y;
-        return (endPrice - startPrice).toFixed(4);
-      }
-      return 0;
+      if (this.series.length === 0) return 0;
+
+      let startPrice = this.series[0].data[0].y,
+        endPrice = this.series[0].data.slice(-1)[0].y;
+      return (endPrice - startPrice).toFixed(4);
     },
     percentChange() {
-      if (this.series.length > 0) {
-        let startPrice = this.series[0].data[0].y;
-        if (startPrice != 0)
-          return ((this.priceChange / startPrice) * 100).toFixed(2);
-      }
+      if (this.series.length === 0) return 0;
+
+      let startPrice = this.series[0].data[0].y;
+      if (startPrice != 0)
+        return ((this.priceChange / startPrice) * 100).toFixed(2);
       return 0;
     },
   },
@@ -136,8 +155,8 @@ export default {
         this.percentChange
       )}%) ${timeFrame}`;
 
-      // Set the tooltip to only show the full datetime when yesterday's data is displayed.
-      if (timeFrame === "Yesterday") dateFormat = "h:mm TT";
+      // Set the tooltip to only show the full datetime when today's data is displayed.
+      if (timeFrame === "Past Day") dateFormat = "MMM dd h:mm TT";
       else dateFormat = "MMM dd yyyy";
 
       // Update options.
@@ -160,24 +179,50 @@ export default {
       };
     },
     showPastDay() {
-      let yesterday = new Date(
+      let today = new Date(
           this.intradayPrices[this.intradayPrices.length - 1].x
         ),
-        yesterdayStartIndex = this.intradayPrices.findIndex((priceData) => {
+        todayStartIndex = this.intradayPrices.findIndex((priceData) => {
           let datetime = new Date(priceData.x);
-          return datetime.getDate() === yesterday.getDate();
+          return datetime.getDate() === today.getDate();
         }),
-        yesterdayPrices = this.intradayPrices.slice(yesterdayStartIndex);
+        todayPrices = this.intradayPrices.slice(todayStartIndex);
 
-      this.updateChart(yesterdayPrices, "Yesterday");
+      this.updateChart(todayPrices, "Past Day");
     },
     showPastWeek() {
       let pastWeekPrices = this.dailyPrices.slice(-WEEKLY_TRADING_DAYS);
       this.updateChart(pastWeekPrices, "Past Week");
     },
+    showMTD() {
+      let currentYear = new Date(this.dailyPrices.slice(-1)[0].x).getFullYear(),
+        currentMonth = new Date(this.dailyPrices.slice(-1)[0].x).getMonth(),
+        monthStartIndex = this.dailyPrices.findIndex((priceData) => {
+          let date = new Date(priceData.x);
+          return (
+            date.getFullYear() === currentYear &&
+            date.getMonth() === currentMonth
+          );
+        }),
+        pricesMTD = this.dailyPrices.slice(monthStartIndex);
+
+      this.updateChart(pricesMTD, "Month to Date");
+    },
     showPastMonth() {
       let pastMonthPrices = this.dailyPrices.slice(-MONTHLY_TRADING_DAYS);
       this.updateChart(pastMonthPrices, "Past Month");
+    },
+    showYTD() {
+      let currentYear = new Date(
+          this.dailyPrices.slice(-1)[0].x
+        ).getFullYear(),
+        yearStartIndex = this.dailyPrices.findIndex((priceData) => {
+          let date = new Date(priceData.x);
+          return date.getFullYear() === currentYear;
+        }),
+        pricesYTD = this.dailyPrices.slice(yearStartIndex);
+      
+      this.updateChart(pricesYTD, "Year to Date");
     },
     showPastYear() {
       let pastYearPrices = this.dailyPrices.slice(-YEARLY_TRADING_DAYS);

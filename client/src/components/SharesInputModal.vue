@@ -3,7 +3,9 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ type == 'buy' ? 'Buy' : 'Sell' }} how many shares?</h5>
+          <h5 class="modal-title">
+            {{ type == "buy" ? "Buy" : "Sell" }} how many shares?
+          </h5>
           <button
             type="button"
             class="btn-close"
@@ -18,7 +20,11 @@
               :class="['form-control', validationClass]"
               v-model="sharesInput"
             />
-            <div class="invalid-feedback">Please provide a valid number between 0 and {{ sharesOwned }}.</div>
+            <div class="invalid-feedback">
+              Please provide a number greater than 0{{
+                type == "sell" ? " and less than or equal to " + sharesOwned : ""
+              }}.
+            </div>
             <label>Shares of {{ symbol }}</label>
           </form>
         </div>
@@ -27,14 +33,17 @@
             class="btn btn-outline-success"
             data-bs-dismiss="modal"
             :disabled="!validSharesInput"
-            @click="$emit('confirmShares', sharesInput); sharesInput = null;"
+            @click="
+              $emit('confirmShares', sharesInput);
+              sharesInput = null;
+            "
           >
             <i class="bi bi-check2"></i> Confirm
           </button>
           <button
             class="btn btn-outline-danger"
             :data-bs-target="previousModal"
-            data-bs-toggle="modal"
+            :data-bs-toggle="[previousModal ? 'modal' : null]"
             data-bs-dismiss="modal"
             @click="sharesInput = null"
           >
@@ -54,7 +63,7 @@ export default {
     type: {
       type: String,
       default: "buy",
-      validator: (value) => ['buy', 'sell'].includes(value)
+      validator: (value) => ["buy", "sell"].includes(value),
     },
     symbol: String,
     sharesOwned: Number,
@@ -76,7 +85,8 @@ export default {
   },
   computed: {
     validSharesInput() {
-      if (this.type === "sell" && this.sharesInput > this.sharesOwned) return false;
+      if (this.type === "sell" && this.sharesInput > this.sharesOwned)
+        return false;
       else if (this.sharesInput > 0) return true;
       else if (this.sharesInput == null) return undefined;
       return false;

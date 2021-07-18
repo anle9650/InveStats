@@ -17,7 +17,7 @@
               ></i>
               ${{ Math.abs(getPriceChange(index)) }} ({{
                 Math.abs(getPercentChange(index))
-              }}%) Yesterday
+              }}%) Past Day
             </small>
           </div>
           <p class="mb-1">${{ endPrices[index] }}</p>
@@ -53,6 +53,7 @@
     </div>
     <shares-input-modal
       id="buySharesInputModal"
+      type="buy"
       :symbol="stockToBuy"
       @confirm-shares="
         (confirmedShares) => $emit('buyStock', stockToBuy, confirmedShares)

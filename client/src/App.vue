@@ -5,7 +5,7 @@
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
-              <i class="bi bi-graph-up"></i>
+              <i class="bi bi-arrow-up-circle"></i>
             </div>
             <div class="flex-grow-1 ms-3">
               <h5 class="card-title">${{ high52Week }}</h5>
@@ -18,7 +18,7 @@
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
-              <i class="bi bi-graph-down"></i>
+              <i class="bi bi-arrow-down-circle"></i>
             </div>
             <div class="flex-grow-1 ms-3">
               <h5 class="card-title">${{ low52Week }}</h5>
@@ -31,13 +31,13 @@
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
-              <i :class="[priceYTD >= 0 ? upArrow : downArrow]"></i>
+              <!-- <i :class="[priceYTD >= 0 ? upGraph : downGraph]"></i> -->
             </div>
             <div class="flex-grow-1 ms-3">
               <h5 class="card-title">
-                {{ priceYTD >= 0 ? "+" : "-" }}${{ Math.abs(priceYTD) }} ({{
+                <!-- {{ priceYTD >= 0 ? "+" : "-" }}${{ Math.abs(priceYTD) }} ({{
                   Math.abs(percentYTD)
-                }}%)
+                }}%) -->
               </h5>
               <h6 class="card-subtitle mb-2 text-muted">Year to Date</h6>
             </div>
@@ -48,7 +48,7 @@
         <div class="shadow card">
           <div class="card-body d-flex">
             <div class="flex-shrink-0">
-              <i :class="[priceSinceInception >= 0 ? upArrow : downArrow]"></i>
+              <i :class="[priceSinceInception >= 0 ? upGraph : downGraph]"></i>
             </div>
             <div class="flex-grow-1 ms-3">
               <h5 class="card-title">
@@ -75,68 +75,102 @@
           <span>Loading...</span>
         </div>
         <div
-          class="shadow card"
+          class="shadow card mb-3"
           v-if="
             selectedIntradayPrices.length != 0 &&
             selectedDailyPrices.length != 0
           "
         >
           <div class="card-body">
-            <stock-line-graph
-              :name="selectedSymbol"
-              :intradayPrices="lineGraphIntradayPrices"
-              :dailyPrices="lineGraphDailyPrices"
-              :timeframe="timeframe"
-            ></stock-line-graph>
+            <div class="d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                v-show="graphType == 'StockLineGraph'"
+                @click="graphType = 'StockCandlestick'"
+              >
+                <i class="bi bi-align-center"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                v-show="graphType == 'StockCandlestick'"
+                @click="graphType = 'StockLineGraph'"
+              >
+                <i
+                  class="bi bi-graph-up"
+                  style="color: unset; font-size: unset"
+                ></i>
+              </button>
+            </div>
+            <transition name="slide-fade">
+              <component
+                :is="graphType"
+                :name="selectedSymbol"
+                :intradayPrices="
+                  graphType == 'StockLineGraph'
+                    ? lineGraphIntradayPrices
+                    : candlestickIntradayPrices
+                "
+                :dailyPrices="
+                  graphType == 'StockLineGraph'
+                    ? lineGraphDailyPrices
+                    : candlestickDailyPrices
+                "
+                :timeframe="timeframe"
+              ></component>
+            </transition>
             <div class="d-flex justify-content-between">
               <button
                 type="button"
-                class="btn btn-secondary btn-sm"
+                class="btn btn-outline-secondary btn-sm"
                 @click="timeframe = 'pastDay'"
               >
                 1D
               </button>
               <button
                 type="button"
-                class="btn btn-secondary btn-sm"
+                class="btn btn-outline-secondary btn-sm"
                 @click="timeframe = 'pastWeek'"
               >
                 1W
               </button>
               <button
                 type="button"
-                class="btn btn-secondary btn-sm"
+                class="btn btn-outline-secondary btn-sm"
+                @click="timeframe = 'MTD'"
+              >
+                MTD
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
                 @click="timeframe = 'pastMonth'"
               >
                 1M
               </button>
               <button
                 type="button"
-                class="btn btn-secondary btn-sm"
+                class="btn btn-outline-secondary btn-sm"
+                @click="timeframe = 'YTD'"
+              >
+                YTD
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
                 @click="timeframe = 'pastYear'"
               >
                 1Y
               </button>
               <button
                 type="button"
-                class="btn btn-secondary btn-sm"
+                class="btn btn-outline-secondary btn-sm"
                 @click="timeframe = 'past5Years'"
               >
                 5Y
               </button>
             </div>
-          </div>
-        </div>
-        <div class="shadow card mt-3 mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Stats</h5>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">An item</li>
-              <li class="list-group-item">A second item</li>
-              <li class="list-group-item">A third item</li>
-              <li class="list-group-item">A fourth item</li>
-              <li class="list-group-item">And a fifth one</li>
-            </ul>
           </div>
         </div>
         <transition name="slide-fade">
@@ -153,6 +187,105 @@
             demo stock (IBM).
           </div>
         </transition>
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="shadow card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">Stats</h5>
+                <h6 class="card-subtitle mb-2 text-muted">
+                  {{ selectedSymbol }}
+                </h6>
+                <ul class="list-group list-group-flush">
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-arrow-left-right me-2"></i>
+                      Volume
+                    </span>
+                    <span>{{ stockVolume }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-arrow-up-circle me-2"></i>
+                      52 Week High
+                    </span>
+                    <span>${{ high52Week }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-arrow-down-circle me-2"></i>
+                      52 Week Low
+                    </span>
+                    <span>${{ low52Week }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i
+                        :class="[
+                          getAnnualizedRate(5) >= 0 ? upGraph : downGraph,
+                          'flex-shrink-0',
+                          'me-2',
+                        ]"
+                      ></i>
+                      5 Year Annualized
+                    </span>
+                    <span>{{ getAnnualizedRate(5) }}%</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i
+                        :class="[
+                          getAnnualizedRate(10) >= 0 ? upGraph : downGraph,
+                          'me-2',
+                        ]"
+                      ></i>
+                      10 Year Annualized
+                    </span>
+                    <span>{{ getAnnualizedRate(10) }}%</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i
+                        :class="[
+                          getAnnualizedRate() >= 0 ? upGraph : downGraph,
+                          'me-2',
+                        ]"
+                      ></i>
+                      Total Annualized
+                    </span>
+                    <span>{{ getAnnualizedRate() }}%</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="shadow card mb-3">
+              <div class="card-body">
+                <apexchart
+                  type="donut"
+                  :options="donutChartOptions"
+                  :series="allStockHoldings"
+                  @data-point-selection="
+                    (event, chartContext, config) =>
+                      (selectedStockIndex = config.dataPointIndex)
+                  "
+                ></apexchart>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="col-lg-4">
         <div class="mb-3">
@@ -170,22 +303,13 @@
           <stocks-list
             :symbols="allSymbols"
             :stockShares="allStockShares"
-            :startPrices="startPricesYesterday"
-            :endPrices="endPricesYesterday"
+            :startPrices="startPricesPastDay"
+            :endPrices="endPricesPastyDay"
             @select-stock="(index) => (selectedStockIndex = index)"
             @buy-stock="addShares"
             @sell-stock="removeShares"
           ></stocks-list>
         </div>
-        <apexchart
-          type="donut"
-          :options="donutChartOptions"
-          :series="allStockHoldings"
-          @data-point-selection="
-            (event, chartContext, config) =>
-              (selectedStockIndex = config.dataPointIndex)
-          "
-        ></apexchart>
       </div>
     </div>
     <transition name="slide-fade">
@@ -217,6 +341,7 @@
 import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
 import StockSearch from "./components/StockSearch";
+import StockCandlestick from "./components/StockCandlestick";
 const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "App",
@@ -224,13 +349,14 @@ export default {
     StockLineGraph,
     StocksList,
     StockSearch,
+    StockCandlestick,
   },
   data() {
     return {
       loading: true,
       apiKey: "1V4VMMH8KUPV4I15",
-      upArrow: "bi bi-arrow-up-circle",
-      downArrow: "bi bi-arrow-down-circle",
+      upGraph: "bi bi-graph-up",
+      downGraph: "bi bi-graph-down",
       stocks: [
         {
           symbol: "IBM",
@@ -252,7 +378,8 @@ export default {
         },
       ],
       selectedStockIndex: 0,
-      timeframe: 'pastDay',
+      timeframe: "pastDay",
+      graphType: "StockLineGraph",
       transactionComplete: false,
       donutChartOptions: {
         title: {
@@ -274,7 +401,7 @@ export default {
                 total: {
                   show: true,
                   showAlways: true,
-                  label: "Total Holdings",
+                  label: "Total Value",
                   formatter: (w) => {
                     return (
                       "$" +
@@ -319,6 +446,7 @@ export default {
   },
   watch: {
     selectedStockIndex(selectedSymbol) {
+      this.timeframe = "pastDay";
       let fetchPromises = [];
       if (this.selectedIntradayPrices.length === 0) {
         let shortenedSymbol = this.selectedSymbol.split(".")[0];
@@ -386,58 +514,78 @@ export default {
         };
       });
     },
+    candlestickIntradayPrices() {
+      return this.selectedIntradayPrices.map((priceData) => {
+        return {
+          x: priceData.datetime,
+          y: [priceData.open, priceData.high, priceData.low, priceData.close],
+        };
+      });
+    },
+    candlestickDailyPrices() {
+      return this.selectedDailyPrices.map((priceData) => {
+        return {
+          x: priceData.date,
+          y: [priceData.open, priceData.high, priceData.low, priceData.close],
+        };
+      });
+    },
     high52Week() {
       if (this.pastYearPrices.length === 0) return 0;
-
       let highPrice = Math.max.apply(
         Math,
         this.pastYearPrices.map((priceData) => priceData.close)
       );
-      return highPrice;
+      return highPrice.toFixed(2);
     },
     low52Week() {
       if (this.pastYearPrices.length === 0) return 0;
-
       let lowPrice = Math.min.apply(
         Math,
         this.pastYearPrices.map((priceData) => priceData.close)
       );
-      return lowPrice;
+      return lowPrice.toFixed(2);
     },
-    priceYTD() {
-      if (
-        this.pastYearPrices.length === 0 ||
-        this.selectedIntradayPrices.length === 0
-      )
-        return null;
-
-      let currentYear = new Date(
-          this.pastYearPrices.slice(-1)[0].date
-        ).getFullYear(),
-        yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-          let date = new Date(priceData.date);
-          return date.getFullYear() === currentYear;
-        }),
-        yearStartPrice = this.pastYearPrices[yearStartIndex].open,
-        currentPrice = this.selectedIntradayPrices.slice(-1)[0].close;
-
-      return (currentPrice - yearStartPrice).toFixed(2);
+    stockVolume() {
+      if (this.selectedDailyPrices == 0) return 0;
+      return parseInt(
+        this.selectedDailyPrices.slice(-1)[0].volume
+      ).toLocaleString();
     },
-    percentYTD() {
-      if (this.pastYearPrices.length === 0) return 0;
+    // priceYTD() {
+    //   if (
+    //     this.pastYearPrices.length === 0 ||
+    //     this.selectedIntradayPrices.length === 0
+    //   )
+    //     return null;
 
-      let currentYear = new Date(
-          this.pastYearPrices.slice(-1)[0].date
-        ).getFullYear(),
-        yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-          let date = new Date(priceData.date);
-          return date.getFullYear() === currentYear;
-        }),
-        yearStartPrice = this.pastYearPrices[yearStartIndex].open;
+    //   let currentYear = new Date(
+    //       this.pastYearPrices.slice(-1)[0].date
+    //     ).getFullYear(),
+    //     yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
+    //       let date = new Date(priceData.date);
+    //       return date.getFullYear() === currentYear;
+    //     }),
+    //     yearStartPrice = this.pastYearPrices[yearStartIndex].open,
+    //     currentPrice = this.selectedIntradayPrices.slice(-1)[0].close;
 
-      if (yearStartPrice === 0) return 0;
-      return ((this.priceYTD / yearStartPrice) * 100).toFixed(2);
-    },
+    //   return (currentPrice - yearStartPrice).toFixed(2);
+    // },
+    // percentYTD() {
+    //   if (this.pastYearPrices.length === 0) return 0;
+
+    //   let currentYear = new Date(
+    //       this.pastYearPrices.slice(-1)[0].date
+    //     ).getFullYear(),
+    //     yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
+    //       let date = new Date(priceData.date);
+    //       return date.getFullYear() === currentYear;
+    //     }),
+    //     yearStartPrice = this.pastYearPrices[yearStartIndex].open;
+
+    //   if (yearStartPrice === 0) return 0;
+    //   return ((this.priceYTD / yearStartPrice) * 100).toFixed(2);
+    // },
     priceSinceInception() {
       if (this.selectedDailyPrices.length === 0) return 0;
 
@@ -459,23 +607,23 @@ export default {
       });
       return allStockShares;
     },
-    startPricesYesterday() {
+    startPricesPastDay() {
       let startPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
-        let yesterday = new Date(
+        let today = new Date(
             stock.intradayPrices.slice(-1)[0].datetime
           ).getDate(),
-          yesterdayStartIndex = stock.intradayPrices.findIndex((priceData) => {
+          todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
             let date = new Date(priceData.datetime).getDate();
-            return date === yesterday;
+            return date === today;
           }),
-          startPrice = stock.intradayPrices[yesterdayStartIndex].close;
+          startPrice = stock.intradayPrices[todayStartIndex].close;
         return startPrice;
       });
       return startPrices;
     },
-    endPricesYesterday() {
+    endPricesPastyDay() {
       let endPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
@@ -544,6 +692,31 @@ export default {
       }
       priceData = priceData.sort((a, b) => a.date - b.date);
       return priceData;
+    },
+    getAnnualizedRate(years) {
+      if (this.selectedDailyPrices.length === 0) return 0;
+
+      var startPrice;
+      let endPrice = this.selectedDailyPrices.slice(-1)[0].close;
+
+      if (years === undefined) {
+        let startYear = new Date(
+            this.selectedDailyPrices[0].date
+          ).getFullYear(),
+          currentYear = new Date(
+            this.selectedDailyPrices.slice(-1)[0].date
+          ).getFullYear();
+
+        years = currentYear - startYear;
+        startPrice = this.selectedDailyPrices[0].open;
+      } else
+        startPrice = this.selectedDailyPrices.slice(
+          -YEARLY_TRADING_DAYS * years
+        )[0].open;
+
+      let rate = endPrice / startPrice,
+        annualizedRate = (Math.pow(rate, 1 / years) - 1) * 100;
+      return annualizedRate.toFixed(2);
     },
     addShares(symbol, shares) {
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
@@ -614,19 +787,19 @@ export default {
 </style>
 
 <style scoped>
-.bi-graph-up,
+/* .bi-graph-up,
 .bi-graph-down,
 .bi-arrow-up-circle,
 .bi-arrow-down-circle {
   font-size: 2rem;
-}
+} */
 
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
 
 .slide-fade-leave-active {
-  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
 }
 
 .slide-fade-enter-from,
