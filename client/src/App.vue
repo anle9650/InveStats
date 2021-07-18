@@ -286,6 +286,7 @@
             </div>
           </div>
         </div>
+        <stock-news-carousel class="shadow mb-3" :stockSymbol="selectedSymbol"></stock-news-carousel>
       </div>
       <div class="col-lg-4">
         <div class="mb-3">
@@ -304,7 +305,7 @@
             :symbols="allSymbols"
             :stockShares="allStockShares"
             :startPrices="startPricesPastDay"
-            :endPrices="endPricesPastyDay"
+            :endPrices="endPricesPastDay"
             @select-stock="(index) => (selectedStockIndex = index)"
             @buy-stock="addShares"
             @sell-stock="removeShares"
@@ -342,6 +343,7 @@ import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
 import StockSearch from "./components/StockSearch";
 import StockCandlestick from "./components/StockCandlestick";
+import StockNewsCarousel from "./components/StockNewsCarousel.vue";
 const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "App",
@@ -350,6 +352,7 @@ export default {
     StocksList,
     StockSearch,
     StockCandlestick,
+    StockNewsCarousel,
   },
   data() {
     return {
@@ -623,7 +626,7 @@ export default {
       });
       return startPrices;
     },
-    endPricesPastyDay() {
+    endPricesPastDay() {
       let endPrices = this.stocks.map((stock) => {
         if (stock.intradayPrices.length === 0) return 0;
 
