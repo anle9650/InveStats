@@ -1,69 +1,6 @@
 <template>
   <div class="container">
     <div class="row mt-4">
-      <div class="col-lg-3">
-        <div class="shadow card">
-          <div class="card-body d-flex">
-            <div class="flex-shrink-0">
-              <i class="bi bi-arrow-up-circle"></i>
-            </div>
-            <div class="flex-grow-1 ms-3">
-              <h5 class="card-title">${{ high52Week }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">52 Week High</h6>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3">
-        <div class="shadow card">
-          <div class="card-body d-flex">
-            <div class="flex-shrink-0">
-              <i class="bi bi-arrow-down-circle"></i>
-            </div>
-            <div class="flex-grow-1 ms-3">
-              <h5 class="card-title">${{ low52Week }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">52 Week Low</h6>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3">
-        <div class="shadow card">
-          <div class="card-body d-flex">
-            <div class="flex-shrink-0">
-              <!-- <i :class="[priceYTD >= 0 ? upGraph : downGraph]"></i> -->
-            </div>
-            <div class="flex-grow-1 ms-3">
-              <h5 class="card-title">
-                <!-- {{ priceYTD >= 0 ? "+" : "-" }}${{ Math.abs(priceYTD) }} ({{
-                  Math.abs(percentYTD)
-                }}%) -->
-              </h5>
-              <h6 class="card-subtitle mb-2 text-muted">Year to Date</h6>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3">
-        <div class="shadow card">
-          <div class="card-body d-flex">
-            <div class="flex-shrink-0">
-              <i :class="[priceSinceInception >= 0 ? upGraph : downGraph]"></i>
-            </div>
-            <div class="flex-grow-1 ms-3">
-              <h5 class="card-title">
-                {{ priceSinceInception >= 0 ? "+" : "-" }}${{
-                  Math.abs(priceSinceInception)
-                }}
-                ({{ Math.abs(percentSinceInception) }}%)
-              </h5>
-              <h6 class="card-subtitle mb-2 text-muted">Since Inception</h6>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row mt-4">
       <div class="col-lg-8">
         <div
           class="d-flex justify-content-center"
@@ -286,7 +223,12 @@
             </div>
           </div>
         </div>
-        <stock-news-carousel class="shadow mb-3" :stockSymbol="selectedSymbol"></stock-news-carousel>
+        <stock-news-carousel
+          class="shadow mb-3"
+          v-if="mostRecentDate"
+          :stockSymbol="selectedSymbol.split('.')[0]"
+          :date="mostRecentDate"
+        ></stock-news-carousel>
       </div>
       <div class="col-lg-4">
         <div class="mb-3">
@@ -297,20 +239,15 @@
             @sell-stock="removeShares"
           ></stock-search>
         </div>
-        <div class="shadow card mb-3">
-          <div class="card-body">
-            <h5 class="card-title">Stocks</h5>
-          </div>
-          <stocks-list
-            :symbols="allSymbols"
-            :stockShares="allStockShares"
-            :startPrices="startPricesPastDay"
-            :endPrices="endPricesPastDay"
-            @select-stock="(index) => (selectedStockIndex = index)"
-            @buy-stock="addShares"
-            @sell-stock="removeShares"
-          ></stocks-list>
-        </div>
+        <stocks-list
+          :symbols="allSymbols"
+          :stockShares="allStockShares"
+          :startPrices="startPricesPastDay"
+          :endPrices="endPricesPastDay"
+          @select-stock="(index) => (selectedStockIndex = index)"
+          @buy-stock="addShares"
+          @sell-stock="removeShares"
+        ></stocks-list>
       </div>
     </div>
     <transition name="slide-fade">
@@ -358,8 +295,6 @@ export default {
     return {
       loading: true,
       apiKey: "1V4VMMH8KUPV4I15",
-      upGraph: "bi bi-graph-up",
-      downGraph: "bi bi-graph-down",
       stocks: [
         {
           symbol: "IBM",
@@ -383,6 +318,8 @@ export default {
       selectedStockIndex: 0,
       timeframe: "pastDay",
       graphType: "StockLineGraph",
+      upGraph: "bi bi-graph-up",
+      downGraph: "bi bi-graph-down",
       transactionComplete: false,
       donutChartOptions: {
         title: {
@@ -555,53 +492,9 @@ export default {
         this.selectedDailyPrices.slice(-1)[0].volume
       ).toLocaleString();
     },
-    // priceYTD() {
-    //   if (
-    //     this.pastYearPrices.length === 0 ||
-    //     this.selectedIntradayPrices.length === 0
-    //   )
-    //     return null;
-
-    //   let currentYear = new Date(
-    //       this.pastYearPrices.slice(-1)[0].date
-    //     ).getFullYear(),
-    //     yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-    //       let date = new Date(priceData.date);
-    //       return date.getFullYear() === currentYear;
-    //     }),
-    //     yearStartPrice = this.pastYearPrices[yearStartIndex].open,
-    //     currentPrice = this.selectedIntradayPrices.slice(-1)[0].close;
-
-    //   return (currentPrice - yearStartPrice).toFixed(2);
-    // },
-    // percentYTD() {
-    //   if (this.pastYearPrices.length === 0) return 0;
-
-    //   let currentYear = new Date(
-    //       this.pastYearPrices.slice(-1)[0].date
-    //     ).getFullYear(),
-    //     yearStartIndex = this.pastYearPrices.findIndex((priceData) => {
-    //       let date = new Date(priceData.date);
-    //       return date.getFullYear() === currentYear;
-    //     }),
-    //     yearStartPrice = this.pastYearPrices[yearStartIndex].open;
-
-    //   if (yearStartPrice === 0) return 0;
-    //   return ((this.priceYTD / yearStartPrice) * 100).toFixed(2);
-    // },
-    priceSinceInception() {
-      if (this.selectedDailyPrices.length === 0) return 0;
-
-      let startPrice = this.selectedDailyPrices[0].open,
-        endPrice = this.selectedDailyPrices.slice(-1)[0].close;
-      return (endPrice - startPrice).toFixed(2);
-    },
-    percentSinceInception() {
-      if (this.selectedDailyPrices.length === 0) return 0;
-
-      let startPrice = this.selectedDailyPrices[0].open;
-      if (startPrice === 0) return 0;
-      return ((this.priceSinceInception / startPrice) * 100).toFixed(2);
+    mostRecentDate() {
+      if (this.selectedIntradayPrices.length === 0) return null;
+      return new Date(this.selectedIntradayPrices.slice(-1)[0].datetime);
     },
     allStockShares() {
       let allStockShares = this.stocks.map((stock) => {
@@ -790,13 +683,6 @@ export default {
 </style>
 
 <style scoped>
-/* .bi-graph-up,
-.bi-graph-down,
-.bi-arrow-up-circle,
-.bi-arrow-down-circle {
-  font-size: 2rem;
-} */
-
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
