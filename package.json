@@ -1,0 +1,22 @@
+{
+  "name": "investats",
+  "version": "1.0.0",
+  "description": "A stock trading and data app.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anle9650/InveStats.git"
+  },
+  "author": "Andy Le",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anle9650/InveStats/issues"
+  },
+  "homepage": "https://github.com/anle9650/InveStats#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

@@ -58,7 +58,7 @@ export default {
                 <div class="card-body">
                     <h5 class="card-title">${article.title}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">${this.stockSymbol}</h6>
-                    <p class="card-text">${article.description}</p>
+                    <p class="card-text">${new DOMParser().parseFromString(article.description, "text/html").body.innerHTML}</p>
                     <a href="${article.url}" class="card-link">${article.source}</a>
                 </div>
             </div>
