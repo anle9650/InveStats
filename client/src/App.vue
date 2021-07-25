@@ -128,16 +128,26 @@
           <div class="col-lg-6">
             <div class="shadow card mb-3">
               <div class="card-body">
-                <h5 class="card-title">Stats</h5>
+                <h5 class="card-title d-flex justify-content-between">
+                  {{ showStats ? "Stats" : "Personal Performance" }}
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    @click="showStats = !showStats"
+                  >
+                    {{ showStats ? "Personal Performance" : "Stats" }}
+                  </button>
+                </h5>
                 <h6 class="card-subtitle mb-2 text-muted">
                   {{ selectedSymbol }}
                 </h6>
-                <ul class="list-group list-group-flush">
+                <!-- <transition> -->
+                <ul class="list-group list-group-flush" v-if="showStats">
                   <li
                     class="list-group-item d-flex w-100 justify-content-between"
                   >
                     <span>
-                      <i class="bi bi-arrow-left-right me-2"></i>
+                      <i class="bi bi-arrow-left-right text-secondary me-2"></i>
                       Volume
                     </span>
                     <span>{{ stockVolume }}</span>
@@ -204,6 +214,73 @@
                     <span>{{ getAnnualizedRate() }}%</span>
                   </li>
                 </ul>
+                <ul class="list-group list-group-flush" v-else>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-pie-chart-fill text-secondary me-2"></i>
+                      Shares
+                    </span>
+                    <span>{{ selectedStockShares }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-percent text-secondary me-2"></i>
+                      Portfolio Diversity
+                    </span>
+                    <span>{{ selectedStockDiversity }}%</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-arrow-up-circle me-2"></i>
+                      Average Cost
+                    </span>
+                    <span>${{ selectedStockAverageCost }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i class="bi bi-cash text-success me-2"></i>
+                      Market Value
+                    </span>
+                    <span>${{ selectedStockValue }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i
+                        :class="[
+                          selectedStockDayReturns >= 0 ? upGraph : downGraph,
+                          'me-2',
+                        ]"
+                      ></i>
+                      Past Day Returns
+                    </span>
+                    <span>${{ selectedStockDayReturns }}</span>
+                  </li>
+                  <li
+                    class="list-group-item d-flex w-100 justify-content-between"
+                  >
+                    <span>
+                      <i
+                        :class="[
+                          selectedStockTotalReturns >= 0 ? upGraph : downGraph,
+                          'me-2',
+                        ]"
+                      ></i>
+                      Total Returns
+                    </span>
+                    <span>${{ selectedStockTotalReturns }}</span>
+                  </li>
+                </ul>
+                <!-- </transition> -->
               </div>
             </div>
           </div>
@@ -293,31 +370,46 @@ export default {
   },
   data() {
     return {
-      loading: true,
+      portfolioId: "60fb9d7a50c8612b1fc884a0",
       apiKey: "1V4VMMH8KUPV4I15",
+      loading: true,
       stocks: [
-        {
-          symbol: "IBM",
-          shares: 1,
-          intradayPrices: [],
-          dailyPrices: [],
-        },
-        {
-          symbol: "TSCO.LON",
-          shares: 1,
-          intradayPrices: [],
-          dailyPrices: [],
-        },
-        {
-          symbol: "SHOP.TRT",
-          shares: 1,
-          intradayPrices: [],
-          dailyPrices: [],
-        },
+        // {
+        //   symbol: String,
+        //   shares: Number,
+        //   transactions: [
+        //     {
+        //       datetime: Date,
+        //       price: Number,
+        //       shares: Number,
+        //     }
+        //   ],
+        //   intradayPrices: [
+        //     {
+        //       datetime: Date,
+        //       open: Number,
+        //       high: Number,
+        //       low: Number,
+        //       close: Number,
+        //       volume: Number,
+        //     },
+        //   ],
+        //   dailyPrices: [
+        //     {
+        //       date: Date,
+        //       open: Number,
+        //       high: Number,
+        //       low: Number,
+        //       close: Number,
+        //       volume: Number,
+        //     }
+        //   ],
+        // },
       ],
       selectedStockIndex: 0,
       timeframe: "pastDay",
       graphType: "StockLineGraph",
+      showStats: false,
       upGraph: "bi bi-graph-up",
       downGraph: "bi bi-graph-down",
       transactionComplete: false,
@@ -361,22 +453,25 @@ export default {
     };
   },
   created() {
-    // Fetch stock price data.
-    let fetchPromises = [];
-    this.stocks.forEach((stock) => {
-      let shortenedSymbol = stock.symbol.split(".")[0];
-      fetchPromises.push(
-        this.fetchIntradayPrices(shortenedSymbol).then((intradayPrices) => {
-          stock.intradayPrices = intradayPrices;
-        })
-      );
-      fetchPromises.push(
-        this.fetchDailyPrices(stock.symbol).then((dailyPrices) => {
-          stock.dailyPrices = dailyPrices;
-        })
-      );
+    this.fetchStocks().then((stocks) => {
+      this.stocks = stocks;
+      // Fetch stock price data.
+      let fetchPromises = [];
+      this.stocks.forEach((stock) => {
+        let shortenedSymbol = stock.symbol.split(".")[0];
+        fetchPromises.push(
+          this.fetchIntradayPrices(shortenedSymbol).then((intradayPrices) => {
+            stock.intradayPrices = intradayPrices;
+          })
+        );
+        fetchPromises.push(
+          this.fetchDailyPrices(stock.symbol).then((dailyPrices) => {
+            stock.dailyPrices = dailyPrices;
+          })
+        );
+      });
+      Promise.all(fetchPromises);
     });
-    Promise.all(fetchPromises);
 
     // Set donut chart labels.
     this.donutChartOptions.labels = this.allSymbols;
@@ -423,20 +518,69 @@ export default {
     },
   },
   computed: {
-    allSymbols() {
-      return this.stocks.map((stock) => stock.symbol);
+    selectedStock() {
+      return this.stocks[this.selectedStockIndex];
     },
     selectedSymbol() {
-      return this.stocks[this.selectedStockIndex].symbol;
+      if (this.stocks.length === 0) return "";
+      return this.selectedStock.symbol;
     },
     selectedIntradayPrices() {
-      return this.stocks[this.selectedStockIndex].intradayPrices;
+      if (
+        this.stocks.length === 0 ||
+        typeof this.selectedStock.intradayPrices === "undefined"
+      )
+        return [];
+      return this.selectedStock.intradayPrices;
     },
     selectedDailyPrices() {
-      return this.stocks[this.selectedStockIndex].dailyPrices;
+      if (
+        this.stocks.length === 0 ||
+        typeof this.selectedStock.dailyPrices === "undefined"
+      )
+        return [];
+      return this.selectedStock.dailyPrices;
     },
-    pastYearPrices() {
-      return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
+    selectedStockPrice() {
+      if (this.stocks.length === 0 || this.selectedIntradayPrices.length === 0)
+        return 0;
+      return this.selectedIntradayPrices.slice(-1)[0].close;
+    },
+    selectedStockShares() {
+      if (this.stocks.length === 0) return 0;
+      return this.selectedStock.shares;
+    },
+    selectedStockTotalCost() {
+      if (this.stocks.length === 0) return 0;
+      return this.selectedStock.transactions.reduce(
+        (totalCost, transaction) =>
+          totalCost + transaction.price * transaction.shares,
+        0
+      );
+    },
+    selectedStockAverageCost() {
+      if (this.stocks.length === 0) return 0;
+      if (this.selectedStockShares === 0) return this.selectedStockTotalCost;
+      return (this.selectedStockTotalCost / this.selectedStockShares).toFixed(
+        2
+      );
+    },
+    selectedStockValue() {
+      return (this.selectedStockPrice * this.selectedStockShares).toFixed(2);
+    },
+    selectedStockDiversity() {
+      let totalValue = this.allStockHoldings.reduce(
+        (totalValue, value) => totalValue + value,
+        0
+      );
+      if (totalValue === 0) return 0;
+      return ((this.selectedStockValue / totalValue) * 100).toFixed(2);
+    },
+    selectedStockDayReturns() {
+      return 0;
+    },
+    selectedStockTotalReturns() {
+      return (this.selectedStockValue - this.selectedStockTotalCost).toFixed(2);
     },
     lineGraphIntradayPrices() {
       return this.selectedIntradayPrices.map((priceData) => {
@@ -470,6 +614,9 @@ export default {
         };
       });
     },
+    pastYearPrices() {
+      return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
+    },
     high52Week() {
       if (this.pastYearPrices.length === 0) return 0;
       let highPrice = Math.max.apply(
@@ -487,7 +634,7 @@ export default {
       return lowPrice.toFixed(2);
     },
     stockVolume() {
-      if (this.selectedDailyPrices == 0) return 0;
+      if (this.selectedDailyPrices.length === 0) return 0;
       return parseInt(
         this.selectedDailyPrices.slice(-1)[0].volume
       ).toLocaleString();
@@ -495,6 +642,10 @@ export default {
     mostRecentDate() {
       if (this.selectedIntradayPrices.length === 0) return null;
       return new Date(this.selectedIntradayPrices.slice(-1)[0].datetime);
+    },
+    allSymbols() {
+      if (this.stocks.length === 0) return [];
+      return this.stocks.map((stock) => stock.symbol);
     },
     allStockShares() {
       let allStockShares = this.stocks.map((stock) => {
@@ -505,7 +656,11 @@ export default {
     },
     startPricesPastDay() {
       let startPrices = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length === 0) return 0;
+        if (
+          typeof stock.intradayPrices === "undefined" ||
+          stock.intradayPrices.length === 0
+        )
+          return 0;
 
         let today = new Date(
             stock.intradayPrices.slice(-1)[0].datetime
@@ -521,7 +676,11 @@ export default {
     },
     endPricesPastDay() {
       let endPrices = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length === 0) return 0;
+        if (
+          typeof stock.intradayPrices === "undefined" ||
+          stock.intradayPrices.length === 0
+        )
+          return 0;
 
         let endPrice = stock.intradayPrices.slice(-1)[0].close;
         return endPrice;
@@ -530,7 +689,11 @@ export default {
     },
     allStockHoldings() {
       let holdings = this.stocks.map((stock) => {
-        if (stock.intradayPrices.length === 0) return 0;
+        if (
+          typeof stock.intradayPrices === "undefined" ||
+          stock.intradayPrices.length === 0
+        )
+          return 0;
 
         let currentPrice = stock.intradayPrices.slice(-1)[0].close;
         return stock.shares * currentPrice;
@@ -539,6 +702,21 @@ export default {
     },
   },
   methods: {
+    async fetchStocks() {
+      const json = await fetch(`api/portfolios/${this.portfolioId}`)
+          .then((response) => response.json())
+          .catch((error) => {
+            throw error;
+          }),
+        stocks = json.data.portfolio.stocks;
+      return stocks.map((stock) => {
+        return {
+          symbol: stock.symbol,
+          shares: stock.shares,
+          transactions: stock.transactions,
+        };
+      });
+    },
     async fetchIntradayPrices(symbol) {
       const json = await fetch(
         `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${
@@ -615,6 +793,7 @@ export default {
       return annualizedRate.toFixed(2);
     },
     addShares(symbol, shares) {
+      // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock) {
         this.stocks = this.stocks.map((stock) => {
@@ -623,13 +802,21 @@ export default {
             ...stock,
             ...{
               shares: stock.shares + parseFloat(shares),
+              transactions: [
+                ...stock.transactions,
+                {
+                  datetime: new Date(),
+                  price: stock.intradayPrices.slice(-1)[0].close,
+                  shares: parseFloat(shares),
+                },
+              ],
             },
           };
         });
         this.transactionComplete = true;
         return;
       }
-
+      // If the stock does not already exist in this.stocks, fetch the price data for the stock, then set the number of shares and record the transaction.
       var intradayPrices, dailyPrices;
       let shortenedSymbol = symbol.split(".")[0];
 
@@ -646,6 +833,13 @@ export default {
         this.stocks.push({
           symbol: symbol,
           shares: parseFloat(shares),
+          transactions: [
+            {
+              datetime: new Date(),
+              price: intradayPrices.slice(-1)[0].close,
+              shares: parseFloat(shares),
+            },
+          ],
           intradayPrices: intradayPrices,
           dailyPrices: dailyPrices,
         });
@@ -654,18 +848,26 @@ export default {
     },
     removeShares(symbol, shares) {
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
-      if (existingStock) {
-        this.stocks = this.stocks.map((stock) => {
-          if (stock != existingStock) return stock;
-          return {
-            ...stock,
-            ...{
-              shares: stock.shares - parseFloat(shares),
-            },
-          };
-        });
-        this.transactionComplete = true;
-      }
+      if (existingStock === undefined) return;
+
+      this.stocks = this.stocks.map((stock) => {
+        if (stock != existingStock) return stock;
+        return {
+          ...stock,
+          ...{
+            shares: stock.shares - parseFloat(shares),
+            transactions: [
+              ...stock.transactions,
+              {
+                datetime: new Date(),
+                price: stock.intradayPrices.slice(-1)[0].close,
+                shares: -parseFloat(shares),
+              },
+            ],
+          },
+        };
+      });
+      this.transactionComplete = true;
     },
   },
 };
