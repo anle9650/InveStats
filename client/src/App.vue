@@ -141,79 +141,17 @@
                 <h6 class="card-subtitle mb-2 text-muted">
                   {{ selectedSymbol }}
                 </h6>
-                <!-- <transition> -->
-                <ul class="list-group list-group-flush" v-if="showStats">
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-arrow-left-right text-secondary me-2"></i>
-                      Volume
-                    </span>
-                    <span>{{ stockVolume }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-arrow-up-circle me-2"></i>
-                      52 Week High
-                    </span>
-                    <span>${{ high52Week }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-arrow-down-circle me-2"></i>
-                      52 Week Low
-                    </span>
-                    <span>${{ low52Week }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i
-                        :class="[
-                          getAnnualizedRate(5) >= 0 ? upGraph : downGraph,
-                          'flex-shrink-0',
-                          'me-2',
-                        ]"
-                      ></i>
-                      5 Year Annualized
-                    </span>
-                    <span>{{ getAnnualizedRate(5) }}%</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i
-                        :class="[
-                          getAnnualizedRate(10) >= 0 ? upGraph : downGraph,
-                          'me-2',
-                        ]"
-                      ></i>
-                      10 Year Annualized
-                    </span>
-                    <span>{{ getAnnualizedRate(10) }}%</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i
-                        :class="[
-                          getAnnualizedRate() >= 0 ? upGraph : downGraph,
-                          'me-2',
-                        ]"
-                      ></i>
-                      Total Annualized
-                    </span>
-                    <span>{{ getAnnualizedRate() }}%</span>
-                  </li>
-                </ul>
+                <stock-stats-display
+                  v-if="showStats"
+                  :stocks="
+                    stocks.map((stock) => {
+                      return {
+                        dailyPrices: stock.dailyPrices,
+                      };
+                    })
+                  "
+                  :selectedStockIndex="selectedStockIndex"
+                ></stock-stats-display>
                 <stock-performance-display
                   v-else
                   :stocks="
@@ -227,73 +165,6 @@
                   "
                   :selectedStockIndex="selectedStockIndex"
                 ></stock-performance-display>
-                <!-- <ul class="list-group list-group-flush" v-else>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-pie-chart-fill text-secondary me-2"></i>
-                      Shares
-                    </span>
-                    <span>{{ selectedStockShares }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-percent text-secondary me-2"></i>
-                      Portfolio Diversity
-                    </span>
-                    <span>{{ selectedStockDiversity }}%</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-arrow-up-circle me-2"></i>
-                      Average Cost
-                    </span>
-                    <span>${{ selectedStockAverageCost }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i class="bi bi-cash text-success me-2"></i>
-                      Market Value
-                    </span>
-                    <span>${{ selectedStockValue }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i
-                        :class="[
-                          selectedStockDayReturns >= 0 ? upGraph : downGraph,
-                          'me-2',
-                        ]"
-                      ></i>
-                      Past Day Returns
-                    </span>
-                    <span>${{ selectedStockDayReturns }}</span>
-                  </li>
-                  <li
-                    class="list-group-item d-flex w-100 justify-content-between"
-                  >
-                    <span>
-                      <i
-                        :class="[
-                          selectedStockTotalReturns >= 0 ? upGraph : downGraph,
-                          'me-2',
-                        ]"
-                      ></i>
-                      Total Returns
-                    </span>
-                    <span>${{ selectedStockTotalReturns }}</span>
-                  </li>
-                </ul> -->
-                <!-- </transition> -->
               </div>
             </div>
           </div>
@@ -372,7 +243,7 @@ import StockSearch from "./components/StockSearch";
 import StockCandlestick from "./components/StockCandlestick";
 import StockNewsCarousel from "./components/StockNewsCarousel.vue";
 import StockPerformanceDisplay from "./components/StockPerformanceDisplay.vue";
-const YEARLY_TRADING_DAYS = 253;
+import StockStatsDisplay from "./components/StockStatsDisplay.vue";
 export default {
   name: "App",
   components: {
@@ -382,6 +253,7 @@ export default {
     StockCandlestick,
     StockNewsCarousel,
     StockPerformanceDisplay,
+    StockStatsDisplay,
   },
   data() {
     return {
@@ -392,9 +264,7 @@ export default {
       selectedStockIndex: 0,
       timeframe: "pastDay",
       graphType: "StockLineGraph",
-      showStats: false,
-      upGraph: "bi bi-graph-up",
-      downGraph: "bi bi-graph-down",
+      showStats: false,      
       transactionComplete: false,
       donutChartOptions: {
         title: {
@@ -524,47 +394,6 @@ export default {
         return [];
       return this.selectedStock.dailyPrices;
     },
-    // selectedStockPrice() {
-    //   if (this.stocks.length === 0 || this.selectedIntradayPrices.length === 0)
-    //     return 0;
-    //   return this.selectedIntradayPrices.slice(-1)[0].close;
-    // },
-    // selectedStockShares() {
-    //   if (this.stocks.length === 0) return 0;
-    //   return this.selectedStock.shares;
-    // },
-    // selectedStockTotalCost() {
-    //   if (this.stocks.length === 0) return 0;
-    //   return this.selectedStock.transactions.reduce(
-    //     (totalCost, transaction) =>
-    //       totalCost + transaction.price * transaction.shares,
-    //     0
-    //   );
-    // },
-    // selectedStockAverageCost() {
-    //   if (this.stocks.length === 0) return 0;
-    //   if (this.selectedStockShares === 0) return this.selectedStockTotalCost;
-    //   return (this.selectedStockTotalCost / this.selectedStockShares).toFixed(
-    //     2
-    //   );
-    // },
-    // selectedStockValue() {
-    //   return (this.selectedStockPrice * this.selectedStockShares).toFixed(2);
-    // },
-    // selectedStockDiversity() {
-    //   let totalValue = this.allStockHoldings.reduce(
-    //     (totalValue, value) => totalValue + value,
-    //     0
-    //   );
-    //   if (totalValue === 0) return 0;
-    //   return ((this.selectedStockValue / totalValue) * 100).toFixed(2);
-    // },
-    // selectedStockDayReturns() {
-    //   return 0;
-    // },
-    // selectedStockTotalReturns() {
-    //   return (this.selectedStockValue - this.selectedStockTotalCost).toFixed(2);
-    // },
     lineGraphIntradayPrices() {
       return this.selectedIntradayPrices.map((priceData) => {
         return {
@@ -596,31 +425,6 @@ export default {
           y: [priceData.open, priceData.high, priceData.low, priceData.close],
         };
       });
-    },
-    pastYearPrices() {
-      return this.selectedDailyPrices.slice(-YEARLY_TRADING_DAYS);
-    },
-    high52Week() {
-      if (this.pastYearPrices.length === 0) return 0;
-      let highPrice = Math.max.apply(
-        Math,
-        this.pastYearPrices.map((priceData) => priceData.close)
-      );
-      return highPrice.toFixed(2);
-    },
-    low52Week() {
-      if (this.pastYearPrices.length === 0) return 0;
-      let lowPrice = Math.min.apply(
-        Math,
-        this.pastYearPrices.map((priceData) => priceData.close)
-      );
-      return lowPrice.toFixed(2);
-    },
-    stockVolume() {
-      if (this.selectedDailyPrices.length === 0) return 0;
-      return parseInt(
-        this.selectedDailyPrices.slice(-1)[0].volume
-      ).toLocaleString();
     },
     mostRecentDate() {
       if (this.selectedIntradayPrices.length === 0) return null;
@@ -710,6 +514,7 @@ export default {
         .catch((error) => {
           throw error;
         });
+
       let priceData = [];
       for (var datetime in json["Time Series (5min)"]) {
         priceData.push({
@@ -749,31 +554,6 @@ export default {
       }
       priceData = priceData.sort((a, b) => a.date - b.date);
       return priceData;
-    },
-    getAnnualizedRate(years) {
-      if (this.selectedDailyPrices.length === 0) return 0;
-
-      var startPrice;
-      let endPrice = this.selectedDailyPrices.slice(-1)[0].close;
-
-      if (years === undefined) {
-        let startYear = new Date(
-            this.selectedDailyPrices[0].date
-          ).getFullYear(),
-          currentYear = new Date(
-            this.selectedDailyPrices.slice(-1)[0].date
-          ).getFullYear();
-
-        years = currentYear - startYear;
-        startPrice = this.selectedDailyPrices[0].open;
-      } else
-        startPrice = this.selectedDailyPrices.slice(
-          -YEARLY_TRADING_DAYS * years
-        )[0].open;
-
-      let rate = endPrice / startPrice,
-        annualizedRate = (Math.pow(rate, 1 / years) - 1) * 100;
-      return annualizedRate.toFixed(2);
     },
     addShares(symbol, shares) {
       // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
@@ -819,7 +599,7 @@ export default {
           transactions: [
             {
               datetime: new Date(),
-              price: intradayPrices.slice(-1)[0].close,
+              price: intradayPrices.length > 0 ? intradayPrices.slice(-1)[0].close : 0,
               shares: parseFloat(shares),
             },
           ],
