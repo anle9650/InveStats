@@ -214,7 +214,20 @@
                     <span>{{ getAnnualizedRate() }}%</span>
                   </li>
                 </ul>
-                <ul class="list-group list-group-flush" v-else>
+                <stock-performance-display
+                  v-else
+                  :stocks="
+                    stocks.map((stock) => {
+                      return {
+                        shares: stock.shares,
+                        transactions: stock.transactions,
+                        intradayPrices: stock.intradayPrices,
+                      };
+                    })
+                  "
+                  :selectedStockIndex="selectedStockIndex"
+                ></stock-performance-display>
+                <!-- <ul class="list-group list-group-flush" v-else>
                   <li
                     class="list-group-item d-flex w-100 justify-content-between"
                   >
@@ -279,7 +292,7 @@
                     </span>
                     <span>${{ selectedStockTotalReturns }}</span>
                   </li>
-                </ul>
+                </ul> -->
                 <!-- </transition> -->
               </div>
             </div>
@@ -358,6 +371,7 @@ import StocksList from "./components/StocksList";
 import StockSearch from "./components/StockSearch";
 import StockCandlestick from "./components/StockCandlestick";
 import StockNewsCarousel from "./components/StockNewsCarousel.vue";
+import StockPerformanceDisplay from "./components/StockPerformanceDisplay.vue";
 const YEARLY_TRADING_DAYS = 253;
 export default {
   name: "App",
@@ -367,45 +381,14 @@ export default {
     StockSearch,
     StockCandlestick,
     StockNewsCarousel,
+    StockPerformanceDisplay,
   },
   data() {
     return {
       portfolioId: "60fb9d7a50c8612b1fc884a0",
       apiKey: "1V4VMMH8KUPV4I15",
       loading: true,
-      stocks: [
-        // {
-        //   symbol: String,
-        //   shares: Number,
-        //   transactions: [
-        //     {
-        //       datetime: Date,
-        //       price: Number,
-        //       shares: Number,
-        //     }
-        //   ],
-        //   intradayPrices: [
-        //     {
-        //       datetime: Date,
-        //       open: Number,
-        //       high: Number,
-        //       low: Number,
-        //       close: Number,
-        //       volume: Number,
-        //     },
-        //   ],
-        //   dailyPrices: [
-        //     {
-        //       date: Date,
-        //       open: Number,
-        //       high: Number,
-        //       low: Number,
-        //       close: Number,
-        //       volume: Number,
-        //     }
-        //   ],
-        // },
-      ],
+      stocks: [],
       selectedStockIndex: 0,
       timeframe: "pastDay",
       graphType: "StockLineGraph",
@@ -541,47 +524,47 @@ export default {
         return [];
       return this.selectedStock.dailyPrices;
     },
-    selectedStockPrice() {
-      if (this.stocks.length === 0 || this.selectedIntradayPrices.length === 0)
-        return 0;
-      return this.selectedIntradayPrices.slice(-1)[0].close;
-    },
-    selectedStockShares() {
-      if (this.stocks.length === 0) return 0;
-      return this.selectedStock.shares;
-    },
-    selectedStockTotalCost() {
-      if (this.stocks.length === 0) return 0;
-      return this.selectedStock.transactions.reduce(
-        (totalCost, transaction) =>
-          totalCost + transaction.price * transaction.shares,
-        0
-      );
-    },
-    selectedStockAverageCost() {
-      if (this.stocks.length === 0) return 0;
-      if (this.selectedStockShares === 0) return this.selectedStockTotalCost;
-      return (this.selectedStockTotalCost / this.selectedStockShares).toFixed(
-        2
-      );
-    },
-    selectedStockValue() {
-      return (this.selectedStockPrice * this.selectedStockShares).toFixed(2);
-    },
-    selectedStockDiversity() {
-      let totalValue = this.allStockHoldings.reduce(
-        (totalValue, value) => totalValue + value,
-        0
-      );
-      if (totalValue === 0) return 0;
-      return ((this.selectedStockValue / totalValue) * 100).toFixed(2);
-    },
-    selectedStockDayReturns() {
-      return 0;
-    },
-    selectedStockTotalReturns() {
-      return (this.selectedStockValue - this.selectedStockTotalCost).toFixed(2);
-    },
+    // selectedStockPrice() {
+    //   if (this.stocks.length === 0 || this.selectedIntradayPrices.length === 0)
+    //     return 0;
+    //   return this.selectedIntradayPrices.slice(-1)[0].close;
+    // },
+    // selectedStockShares() {
+    //   if (this.stocks.length === 0) return 0;
+    //   return this.selectedStock.shares;
+    // },
+    // selectedStockTotalCost() {
+    //   if (this.stocks.length === 0) return 0;
+    //   return this.selectedStock.transactions.reduce(
+    //     (totalCost, transaction) =>
+    //       totalCost + transaction.price * transaction.shares,
+    //     0
+    //   );
+    // },
+    // selectedStockAverageCost() {
+    //   if (this.stocks.length === 0) return 0;
+    //   if (this.selectedStockShares === 0) return this.selectedStockTotalCost;
+    //   return (this.selectedStockTotalCost / this.selectedStockShares).toFixed(
+    //     2
+    //   );
+    // },
+    // selectedStockValue() {
+    //   return (this.selectedStockPrice * this.selectedStockShares).toFixed(2);
+    // },
+    // selectedStockDiversity() {
+    //   let totalValue = this.allStockHoldings.reduce(
+    //     (totalValue, value) => totalValue + value,
+    //     0
+    //   );
+    //   if (totalValue === 0) return 0;
+    //   return ((this.selectedStockValue / totalValue) * 100).toFixed(2);
+    // },
+    // selectedStockDayReturns() {
+    //   return 0;
+    // },
+    // selectedStockTotalReturns() {
+    //   return (this.selectedStockValue - this.selectedStockTotalCost).toFixed(2);
+    // },
     lineGraphIntradayPrices() {
       return this.selectedIntradayPrices.map((priceData) => {
         return {
