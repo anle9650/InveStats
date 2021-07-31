@@ -1,7 +1,7 @@
 const express = require("express"),
     app = express(),
     mongoose = require("mongoose"),
-    apiRoutes = require("./routes/apiRoutes");;
+    apiRoutes = require("./routes/apiRoutes");
 
 mongoose.Promise = global.Promise;
 mongoose.connect(

@@ -95,7 +95,14 @@ export default {
       this.options.title.text = newName;
     },
     intradayPrices() {
-      this.showPastDay();
+      // this.showPastDay();
+      if (this.timeframe == "pastDay") this.showPastDay();
+      else if (this.timeframe == "pastWeek") this.showPastWeek();
+      else if (this.timeframe == "MTD") this.showMTD();
+      else if (this.timeframe == "pastMonth") this.showPastMonth();
+      else if (this.timeframe == "YTD") this.showYTD();
+      else if (this.timeframe == "pastYear") this.showPastYear();
+      else if (this.timeframe == "past5Years") this.showPast5Years();
     },
     timeframe(newTimeframe) {
       if (newTimeframe == "pastDay") this.showPastDay();
@@ -213,15 +220,13 @@ export default {
       this.updateChart(pastMonthPrices, "Past Month");
     },
     showYTD() {
-      let currentYear = new Date(
-          this.dailyPrices.slice(-1)[0].x
-        ).getFullYear(),
+      let currentYear = new Date(this.dailyPrices.slice(-1)[0].x).getFullYear(),
         yearStartIndex = this.dailyPrices.findIndex((priceData) => {
           let date = new Date(priceData.x);
           return date.getFullYear() === currentYear;
         }),
         pricesYTD = this.dailyPrices.slice(yearStartIndex);
-      
+
       this.updateChart(pricesYTD, "Year to Date");
     },
     showPastYear() {

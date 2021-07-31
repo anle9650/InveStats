@@ -201,10 +201,13 @@
           ></stock-search>
         </div>
         <stocks-list
-          :symbols="allSymbols"
-          :stockShares="allStockShares"
-          :startPrices="startPricesPastDay"
-          :endPrices="endPricesPastDay"
+          :stocks="stocks.map((stock) => {
+            return {
+              symbol: stock.symbol,
+              shares: stock.shares,
+              intradayPrices: stock.intradayPrices,
+            };
+          })"
           @select-stock="(index) => (selectedStockIndex = index)"
           @buy-stock="addShares"
           @sell-stock="removeShares"
@@ -334,7 +337,7 @@ export default {
   },
   watch: {
     selectedStockIndex(selectedSymbol) {
-      this.timeframe = "pastDay";
+      // this.timeframe = "pastDay";
       let fetchPromises = [];
       if (this.selectedIntradayPrices.length === 0) {
         let shortenedSymbol = this.selectedSymbol.split(".")[0];
@@ -431,7 +434,6 @@ export default {
       return new Date(this.selectedIntradayPrices.slice(-1)[0].datetime);
     },
     allSymbols() {
-      if (this.stocks.length === 0) return [];
       return this.stocks.map((stock) => stock.symbol);
     },
     allStockShares() {
@@ -440,39 +442,6 @@ export default {
         return 0;
       });
       return allStockShares;
-    },
-    startPricesPastDay() {
-      let startPrices = this.stocks.map((stock) => {
-        if (
-          typeof stock.intradayPrices === "undefined" ||
-          stock.intradayPrices.length === 0
-        )
-          return 0;
-
-        let today = new Date(
-            stock.intradayPrices.slice(-1)[0].datetime
-          ).getDate(),
-          todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
-            let date = new Date(priceData.datetime).getDate();
-            return date === today;
-          }),
-          startPrice = stock.intradayPrices[todayStartIndex].close;
-        return startPrice;
-      });
-      return startPrices;
-    },
-    endPricesPastDay() {
-      let endPrices = this.stocks.map((stock) => {
-        if (
-          typeof stock.intradayPrices === "undefined" ||
-          stock.intradayPrices.length === 0
-        )
-          return 0;
-
-        let endPrice = stock.intradayPrices.slice(-1)[0].close;
-        return endPrice;
-      });
-      return endPrices;
     },
     allStockHoldings() {
       let holdings = this.stocks.map((stock) => {
@@ -541,6 +510,7 @@ export default {
         .catch((error) => {
           throw error;
         });
+
       let priceData = [];
       for (var datetime in json["Time Series (Daily)"]) {
         priceData.push({

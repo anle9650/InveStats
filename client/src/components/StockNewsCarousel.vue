@@ -69,9 +69,9 @@ export default {
   methods: {
     fetchArticles() {
       fetch(
-        `${this.apiHost}${this.apiPath}?apiKey=${this.apiKey}&q=${
+        `${this.apiHost}${this.apiPath}?apiKey=${this.apiKey}&q=$${
           this.stockSymbol
-        }+stock&from=${
+        }&from=${
           this.date.toISOString().split("T")[0]
         }&language=en&sortBy=relevancy`
       )

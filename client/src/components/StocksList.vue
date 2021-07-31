@@ -9,7 +9,7 @@
           <a
             href="#"
             class="list-group-item list-group-item-action"
-            v-for="(symbol, index) in symbols"
+            v-for="(symbol, index) in allSymbols"
             :key="index"
             @click="$emit('selectStock', index)"
           >
@@ -24,11 +24,11 @@
                 }}%) Past Day
               </small>
             </div>
-            <p class="mb-1">${{ endPrices[index] }}</p>
+            <p class="mb-1">${{ endPricesPastDay[index] }}</p>
             <div class="d-flex w-100 justify-content-between">
               <small class="text-muted">
-                {{ stockShares[index] }}
-                {{ stockShares[index] === 1 ? "share" : "shares" }}
+                {{ allStockShares[index] }}
+                {{ allStockShares[index] === 1 ? "share" : "shares" }}
               </small>
               <div>
                 <button
@@ -36,6 +36,7 @@
                   data-bs-target="#buySharesInputModal"
                   data-bs-toggle="modal"
                   data-bs-dismiss="modal"
+                  :disabled="endPricesPastDay[index] === 0"
                   @click="stockToBuy = symbol"
                 >
                   Buy
@@ -45,7 +46,7 @@
                   data-bs-target="#sellSharesInputModal"
                   data-bs-toggle="modal"
                   data-bs-dismiss="modal"
-                  :disabled="getSharesOwned(symbol) === 0"
+                  :disabled="getSharesOwned(symbol) === 0 || endPricesPastDay[index] === 0"
                   @click="stockToSell = symbol"
                 >
                   Sell
@@ -82,22 +83,7 @@ export default {
   components: { SharesInputModal },
   name: "stocks-list",
   props: {
-    symbols: {
-      type: Array,
-      required: true,
-    },
-    stockShares: {
-      type: Array,
-      required: true,
-    },
-    startPrices: {
-      type: Array,
-      required: true,
-    },
-    endPrices: {
-      type: Array,
-      required: true,
-    },
+    stocks: Array,
   },
   emits: ["selectStock", "buyStock", "sellStock"],
   data() {
@@ -108,21 +94,66 @@ export default {
       stockToSell: null,
     };
   },
+  computed: {
+    allSymbols() {
+      return this.stocks.map((stock) => stock.symbol);
+    },
+    allStockShares() {
+      let allStockShares = this.stocks.map((stock) => {
+        if (stock.shares) return stock.shares;
+        return 0;
+      });
+      return allStockShares;
+    },
+    startPricesPastDay() {
+      let startPrices = this.stocks.map((stock) => {
+        if (
+          typeof stock.intradayPrices === "undefined" ||
+          stock.intradayPrices.length === 0
+        )
+          return 0;
+
+        let today = new Date(
+            stock.intradayPrices.slice(-1)[0].datetime
+          ).getDate(),
+          todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
+            let date = new Date(priceData.datetime).getDate();
+            return date === today;
+          }),
+          startPrice = stock.intradayPrices[todayStartIndex].close;
+        return startPrice;
+      });
+      return startPrices;
+    },
+    endPricesPastDay() {
+      let endPrices = this.stocks.map((stock) => {
+        if (
+          typeof stock.intradayPrices === "undefined" ||
+          stock.intradayPrices.length === 0
+        )
+          return 0;
+
+        let endPrice = stock.intradayPrices.slice(-1)[0].close;
+        return endPrice;
+      });
+      return endPrices;
+    },
+  },
   methods: {
     getPriceChange(stockIndex) {
       return (
-        this.endPrices[stockIndex] - this.startPrices[stockIndex]
+        this.endPricesPastDay[stockIndex] - this.startPricesPastDay[stockIndex]
       ).toFixed(2);
     },
     getPercentChange(stockIndex) {
       let priceChange = this.getPriceChange(stockIndex),
-        startPrice = this.startPrices[stockIndex];
+        startPrice = this.startPricesPastDay[stockIndex];
       if (startPrice === 0) return null;
       return ((priceChange / startPrice) * 100).toFixed(2);
     },
     getSharesOwned(stock) {
-      let stockIndex = this.symbols.findIndex((symbol) => symbol === stock);
-      return this.stockShares[stockIndex];
+      let stockIndex = this.allSymbols.findIndex((symbol) => symbol === stock);
+      return this.allStockShares[stockIndex];
     },
   },
 };
