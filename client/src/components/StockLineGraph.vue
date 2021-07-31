@@ -40,7 +40,6 @@ export default {
     return {
       options: {
         chart: {
-          id: "stock-line-graph",
           toolbar: {
             show: false,
           },
@@ -57,7 +56,7 @@ export default {
         subtitle: {
           text: undefined,
           style: {
-            color: "#9699a2",
+            color: undefined,
           },
         },
         xaxis: {

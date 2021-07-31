@@ -40,7 +40,6 @@ export default {
     return {
       options: {
         chart: {
-          id: "stock-candlestick",
           toolbar: {
             show: false,
           },
@@ -57,7 +56,7 @@ export default {
         subtitle: {
           text: undefined,
           style: {
-            color: "#9699a2",
+            color: undefined,
           },
         },
         xaxis: {
@@ -66,6 +65,10 @@ export default {
             show: false,
             datetimeUTC: false,
           },
+        },
+        colors: undefined,
+        stroke: {
+          width: 1,
         },
         tooltip: {
           x: {

@@ -19,7 +19,12 @@
           "
         >
           <div class="card-body">
-            <div class="d-flex justify-content-end">
+            <stock-line-candle
+              :name="selectedSymbol"
+              :intradayPrices="candlestickIntradayPrices"
+              :dailyPrices="candlestickDailyPrices"
+            ></stock-line-candle>
+            <!-- <div class="d-flex justify-content-end">
               <button
                 type="button"
                 class="btn btn-outline-primary btn-sm"
@@ -107,7 +112,7 @@
               >
                 5Y
               </button>
-            </div>
+            </div> -->
           </div>
         </div>
         <transition name="slide-fade">
@@ -201,13 +206,15 @@
           ></stock-search>
         </div>
         <stocks-list
-          :stocks="stocks.map((stock) => {
-            return {
-              symbol: stock.symbol,
-              shares: stock.shares,
-              intradayPrices: stock.intradayPrices,
-            };
-          })"
+          :stocks="
+            stocks.map((stock) => {
+              return {
+                symbol: stock.symbol,
+                shares: stock.shares,
+                intradayPrices: stock.intradayPrices,
+              };
+            })
+          "
           @select-stock="(index) => (selectedStockIndex = index)"
           @buy-stock="addShares"
           @sell-stock="removeShares"
@@ -240,23 +247,25 @@
 </template>
 
 <script>
-import StockLineGraph from "./components/StockLineGraph";
+// import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
 import StockSearch from "./components/StockSearch";
-import StockCandlestick from "./components/StockCandlestick";
+// import StockCandlestick from "./components/StockCandlestick";
 import StockNewsCarousel from "./components/StockNewsCarousel.vue";
 import StockPerformanceDisplay from "./components/StockPerformanceDisplay.vue";
 import StockStatsDisplay from "./components/StockStatsDisplay.vue";
+import StockLineCandle from "./components/StockLineCandle.vue";
 export default {
   name: "App",
   components: {
-    StockLineGraph,
+    // StockLineGraph,
     StocksList,
     StockSearch,
-    StockCandlestick,
+    // StockCandlestick,
     StockNewsCarousel,
     StockPerformanceDisplay,
     StockStatsDisplay,
+    StockLineCandle,
   },
   data() {
     return {
@@ -267,7 +276,7 @@ export default {
       selectedStockIndex: 0,
       timeframe: "pastDay",
       graphType: "StockLineGraph",
-      showStats: false,      
+      showStats: false,
       transactionComplete: false,
       donutChartOptions: {
         title: {
@@ -569,7 +578,10 @@ export default {
           transactions: [
             {
               datetime: new Date(),
-              price: intradayPrices.length > 0 ? intradayPrices.slice(-1)[0].close : 0,
+              price:
+                intradayPrices.length > 0
+                  ? intradayPrices.slice(-1)[0].close
+                  : 0,
               shares: parseFloat(shares),
             },
           ],
