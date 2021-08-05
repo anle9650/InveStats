@@ -106,8 +106,14 @@
       <div class="col-lg-4">
         <div class="mb-3">
           <stock-search
-            :stocksOwned="allSymbols"
-            :stockShares="allStockShares"
+            :stocksOwned="
+              stocks.map((stock) => {
+                return {
+                  symbol: stock.symbol,
+                  shares: stock.shares,
+                };
+              })
+            "
             @buy-stock="addShares"
             @sell-stock="removeShares"
           ></stock-search>

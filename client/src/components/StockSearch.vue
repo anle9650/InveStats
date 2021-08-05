@@ -64,7 +64,7 @@
                       data-bs-target="#searchResultsBuyModal"
                       data-bs-toggle="modal"
                       data-bs-dismiss="modal"
-                      @click="stockToBuy = stock.symbol"
+                      @click="stockToBuy = stock"
                     >
                       Buy
                     </button>
@@ -73,8 +73,8 @@
                       data-bs-target="#searchResultsSellModal"
                       data-bs-toggle="modal"
                       data-bs-dismiss="modal"
-                      :disabled="getSharesOwned(stock.symbol) === 0"
-                      @click="stockToSell = stock.symbol"
+                      :disabled="getSharesOwned(stock) === 0"
+                      @click="stockToSell = stock"
                     >
                       Sell
                     </button>
@@ -90,20 +90,20 @@
     <shares-input-modal
       id="searchResultsBuyModal"
       type="buy"
-      :symbol="stockToBuy"
+      :symbol="stockToBuy ? stockToBuy.symbol : null"
       previousModal="#searchResultsModal"
       @confirm-shares="
-        (confirmedShares) => $emit('buyStock', stockToBuy, confirmedShares)
+        (confirmedShares) => $emit('buyStock', stockToBuy ? stockToBuy.symbol : null, confirmedShares)
       "
     ></shares-input-modal>
     <shares-input-modal
       id="searchResultsSellModal"
       type="sell"
-      :symbol="stockToSell"
-      :sharesOwned="getSharesOwned(stockToSell)"
+      :symbol="stockToSell ? stockToSell.symbol : null"
+      :sharesOwned="stockToSell ? stockToSell.shares : 0"
       previousModal="#searchResultsModal"
       @confirm-shares="
-        (confirmedShares) => $emit('sellStock', stockToSell, confirmedShares)
+        (confirmedShares) => $emit('sellStock', stockToSell ? stockToSell.symbol : null, confirmedShares)
       "
     ></shares-input-modal>
   </div>
@@ -118,10 +118,6 @@ export default {
   },
   props: {
     stocksOwned: {
-      type: Array,
-      default: () => [],
-    },
-    stockShares: {
       type: Array,
       default: () => [],
     },
@@ -173,9 +169,9 @@ export default {
         .catch((error) => console.log(error));
     },
     getSharesOwned(stock) {
-      let stockIndex = this.stocksOwned.findIndex((symbol) => symbol === stock);
-      if (stockIndex === -1) return 0;
-      return this.stockShares[stockIndex];
+      let ownedStock = this.stocksOwned.find((ownedStock) => ownedStock.symbol === stock.symbol);
+      if (ownedStock) return ownedStock.shares;
+      return 0;
     },
   },
 };
