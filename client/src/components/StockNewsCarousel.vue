@@ -17,7 +17,7 @@ export default {
     numberOfArticles: {
       type: Number,
       default: 5,
-    }
+    },
   },
   data() {
     return {
@@ -27,15 +27,13 @@ export default {
       stocks: [],
     };
   },
-  created() {
-    if (this.stocks.includes((stock) => stock.symbol === this.stockSymbol))
-      return;
-    this.fetchArticles();
-  },
   watch: {
-    stockSymbol(newSymbol) {
-      if (this.stocks.includes((stock) => stock.symbol === newSymbol)) return;
-      this.fetchArticles();
+    stockSymbol: {
+      handler(newSymbol) {
+        if (this.stocks.includes((stock) => stock.symbol === newSymbol)) return;
+        this.fetchArticles();
+      },
+      immediate: true,
     },
   },
   computed: {
@@ -54,12 +52,25 @@ export default {
       return this.selectedStockArticles.map((article) => {
         return /*html*/ ` 
             <div class="slide card">
-                ${article.urlToImage ? `<img class="card-img-top overflow-hidden" src="${article.urlToImage}" alt="Card image cap">` : ``}
+                ${
+                  article.urlToImage
+                    ? `<img class="card-img-top overflow-hidden" src="${article.urlToImage}" alt="Card image cap">`
+                    : ``
+                }
                 <div class="card-body">
                     <h5 class="card-title">${article.title}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">${this.stockSymbol}</h6>
-                    <p class="card-text">${new DOMParser().parseFromString(article.description, "text/html").body.innerHTML}</p>
-                    <a href="${article.url}" class="card-link">${article.source}</a>
+                    <h6 class="card-subtitle mb-2 text-muted">${
+                      this.stockSymbol
+                    }</h6>
+                    <p class="card-text">${
+                      new DOMParser().parseFromString(
+                        article.description,
+                        "text/html"
+                      ).body.innerHTML
+                    }</p>
+                    <a href="${article.url}" class="card-link">${
+          article.source
+        }</a>
                 </div>
             </div>
         `;
@@ -77,15 +88,17 @@ export default {
       )
         .then((response) => response.json())
         .then((json) => {
-          let articles = json.articles.slice(0, this.numberOfArticles).map((article) => {
-            return {
-              source: article.source.name,
-              title: article.title,
-              description: article.description,
-              url: article.url,
-              urlToImage: article.urlToImage,
-            };
-          });
+          let articles = json.articles
+            .slice(0, this.numberOfArticles)
+            .map((article) => {
+              return {
+                source: article.source.name,
+                title: article.title,
+                description: article.description,
+                url: article.url,
+                urlToImage: article.urlToImage,
+              };
+            });
           this.stocks.push({
             symbol: this.stockSymbol,
             articles: articles,

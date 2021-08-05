@@ -2,129 +2,36 @@
   <div class="container">
     <div class="row mt-4">
       <div class="col-lg-8">
-        <div
-          class="d-flex justify-content-center"
-          v-if="loading && selectedIntradayPrices.length === 0"
-        >
-          <div class="spinner-border me-2" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <span>Loading...</span>
-        </div>
-        <div
-          class="shadow card mb-3"
-          v-if="
-            selectedIntradayPrices.length != 0 &&
-            selectedDailyPrices.length != 0
-          "
-        >
-          <div class="card-body">
-            <stock-line-candle
-              :name="selectedSymbol"
-              :intradayPrices="candlestickIntradayPrices"
-              :dailyPrices="candlestickDailyPrices"
-            ></stock-line-candle>
-            <!-- <div class="d-flex justify-content-end">
-              <button
-                type="button"
-                class="btn btn-outline-primary btn-sm"
-                v-show="graphType == 'StockLineGraph'"
-                @click="graphType = 'StockCandlestick'"
-              >
-                <i class="bi bi-align-center"></i>
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-primary btn-sm"
-                v-show="graphType == 'StockCandlestick'"
-                @click="graphType = 'StockLineGraph'"
-              >
-                <i
-                  class="bi bi-graph-up"
-                  style="color: unset; font-size: unset"
-                ></i>
-              </button>
-            </div>
-            <transition name="slide-fade">
-              <component
-                :is="graphType"
-                :name="selectedSymbol"
-                :intradayPrices="
-                  graphType == 'StockLineGraph'
-                    ? lineGraphIntradayPrices
-                    : candlestickIntradayPrices
-                "
-                :dailyPrices="
-                  graphType == 'StockLineGraph'
-                    ? lineGraphDailyPrices
-                    : candlestickDailyPrices
-                "
-                :timeframe="timeframe"
-              ></component>
-            </transition>
-            <div class="d-flex justify-content-between">
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'pastDay'"
-              >
-                1D
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'pastWeek'"
-              >
-                1W
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'MTD'"
-              >
-                MTD
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'pastMonth'"
-              >
-                1M
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'YTD'"
-              >
-                YTD
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'pastYear'"
-              >
-                1Y
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                @click="timeframe = 'past5Years'"
-              >
-                5Y
-              </button>
-            </div> -->
-          </div>
-        </div>
-        <transition name="slide-fade">
+        <transition name="slide-fade" mode="out-in">
           <div
+            class="d-flex justify-content-center"
             v-if="
-              !loading &&
+              loading &&
               (selectedIntradayPrices.length === 0 ||
                 selectedDailyPrices.length === 0)
             "
-            class="alert alert-danger"
-            role="alert"
           >
+            <div class="spinner-border me-2" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Loading...</span>
+          </div>
+          <div
+            v-else-if="
+              selectedIntradayPrices.length != 0 &&
+              selectedDailyPrices.length != 0
+            "
+            class="shadow card mb-3"
+          >
+            <div class="card-body">
+              <stock-line-candle
+                :name="selectedSymbol"
+                :intradayPrices="selectedIntradayPrices"
+                :dailyPrices="selectedDailyPrices"
+              ></stock-line-candle>
+            </div>
+          </div>
+          <div v-else-if="!loading" class="alert alert-danger" role="alert">
             Maximum API calls exceeded. Please try again in 60 seconds, or use
             demo stock (IBM).
           </div>
@@ -247,10 +154,8 @@
 </template>
 
 <script>
-// import StockLineGraph from "./components/StockLineGraph";
 import StocksList from "./components/StocksList";
 import StockSearch from "./components/StockSearch";
-// import StockCandlestick from "./components/StockCandlestick";
 import StockNewsCarousel from "./components/StockNewsCarousel.vue";
 import StockPerformanceDisplay from "./components/StockPerformanceDisplay.vue";
 import StockStatsDisplay from "./components/StockStatsDisplay.vue";
@@ -258,10 +163,8 @@ import StockLineCandle from "./components/StockLineCandle.vue";
 export default {
   name: "App",
   components: {
-    // StockLineGraph,
     StocksList,
     StockSearch,
-    // StockCandlestick,
     StockNewsCarousel,
     StockPerformanceDisplay,
     StockStatsDisplay,
@@ -274,8 +177,6 @@ export default {
       loading: true,
       stocks: [],
       selectedStockIndex: 0,
-      timeframe: "pastDay",
-      graphType: "StockLineGraph",
       showStats: false,
       transactionComplete: false,
       donutChartOptions: {
@@ -320,6 +221,7 @@ export default {
   created() {
     this.fetchStocks().then((stocks) => {
       this.stocks = stocks;
+
       // Fetch stock price data.
       let fetchPromises = [];
       this.stocks.forEach((stock) => {
@@ -337,16 +239,12 @@ export default {
       });
       Promise.all(fetchPromises);
     });
-
-    // Set donut chart labels.
-    this.donutChartOptions.labels = this.allSymbols;
   },
   mounted() {
     setTimeout(() => (this.loading = false), 3000);
   },
   watch: {
     selectedStockIndex(selectedSymbol) {
-      // this.timeframe = "pastDay";
       let fetchPromises = [];
       if (this.selectedIntradayPrices.length === 0) {
         let shortenedSymbol = this.selectedSymbol.split(".")[0];
@@ -372,6 +270,7 @@ export default {
     },
     stocks: {
       deep: true,
+      immediate: true,
       handler() {
         this.donutChartOptions = {
           ...this.donutChartOptions,
@@ -405,38 +304,6 @@ export default {
       )
         return [];
       return this.selectedStock.dailyPrices;
-    },
-    lineGraphIntradayPrices() {
-      return this.selectedIntradayPrices.map((priceData) => {
-        return {
-          x: priceData.datetime,
-          y: priceData.close,
-        };
-      });
-    },
-    lineGraphDailyPrices() {
-      return this.selectedDailyPrices.map((priceData) => {
-        return {
-          x: priceData.date,
-          y: priceData.close,
-        };
-      });
-    },
-    candlestickIntradayPrices() {
-      return this.selectedIntradayPrices.map((priceData) => {
-        return {
-          x: priceData.datetime,
-          y: [priceData.open, priceData.high, priceData.low, priceData.close],
-        };
-      });
-    },
-    candlestickDailyPrices() {
-      return this.selectedDailyPrices.map((priceData) => {
-        return {
-          x: priceData.date,
-          y: [priceData.open, priceData.high, priceData.low, priceData.close],
-        };
-      });
     },
     mostRecentDate() {
       if (this.selectedIntradayPrices.length === 0) return null;
