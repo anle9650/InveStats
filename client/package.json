@@ -11,10 +11,7 @@
     "@chenfengyuan/vue-carousel": "^2.0.0-beta",
     "apexcharts": "^3.27.1",
     "core-js": "^3.6.5",
-    "csv-parse": "^4.16.0",
-    "papaparse": "^5.3.1",
     "vue": "^3.1.5",
-    "vue-papa-parse": "^2.0.0",
     "vue3-apexcharts": "^1.4.0"
   },
   "devDependencies": {

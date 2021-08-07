@@ -55,14 +55,7 @@
                 </h6>
                 <stock-stats-display
                   v-if="showStats"
-                  :stocks="
-                    stocks.map((stock) => {
-                      return {
-                        dailyPrices: stock.dailyPrices,
-                      };
-                    })
-                  "
-                  :selectedStockIndex="selectedStockIndex"
+                  :dailyPrices="selectedDailyPrices"
                 ></stock-stats-display>
                 <stock-performance-display
                   v-else
