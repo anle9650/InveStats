@@ -2,7 +2,7 @@
   "name": "investats",
   "version": "1.0.0",
   "description": "A stock trading and data app.",
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"
   },
