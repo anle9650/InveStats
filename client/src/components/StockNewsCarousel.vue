@@ -30,8 +30,8 @@ export default {
   },
   data() {
     return {
-      apiHost: "https://newsapi.org",
-      apiPath: "/v2/everything",
+      apiHost: "api",
+      apiPath: "/news",
       apiKey: "290461764c484a18b2e4a24fcba4a867",
       stocks: [],
     };
@@ -89,11 +89,11 @@ export default {
   methods: {
     fetchArticles() {
       fetch(
-        `${this.apiHost}${this.apiPath}?apiKey=${this.apiKey}&q=$${
+        `${this.apiHost}${this.apiPath}?q=${
           this.stockSymbol
         }&from=${
           this.date.toISOString().split("T")[0]
-        }&language=en&sortBy=relevancy`
+        }`
       )
         .then((response) => response.json())
         .then((json) => {
