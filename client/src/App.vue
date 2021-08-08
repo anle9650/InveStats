@@ -5,22 +5,19 @@
         <transition name="slide-fade" mode="out-in">
           <div
             class="d-flex justify-content-center"
-            v-if="
-              loading &&
-              (selectedIntradayPrices.length === 0 ||
-                selectedDailyPrices.length === 0)
-            "
+            v-if="loading && selectedIntradayPrices.length === 0"
           >
             <div class="spinner-border me-2" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
             <span>Loading...</span>
           </div>
+          <div v-else-if="!loading && (selectedIntradayPrices.length === 0 || selectedDailyPrices.length === 0)" class="alert alert-danger" role="alert">
+            Maximum API calls exceeded. Please try again in 60 seconds, or use
+            demo stock (IBM).
+          </div>
           <div
-            v-else-if="
-              selectedIntradayPrices.length != 0 &&
-              selectedDailyPrices.length != 0
-            "
+            v-else
             class="shadow card mb-3"
           >
             <div class="card-body">
@@ -30,10 +27,6 @@
                 :dailyPrices="selectedDailyPrices"
               ></stock-line-candle>
             </div>
-          </div>
-          <div v-else-if="!loading" class="alert alert-danger" role="alert">
-            Maximum API calls exceeded. Please try again in 60 seconds, or use
-            demo stock (IBM).
           </div>
         </transition>
         <div class="row">
@@ -153,12 +146,18 @@
 </template>
 
 <script>
+import StockLineCandle from "./components/StockLineCandle.vue";
+import StockSearch from "./components/StockSearch.vue";
 import StocksList from "./components/StocksList";
-import StockSearch from "./components/StockSearch";
-import StockNewsCarousel from "./components/StockNewsCarousel.vue";
 import StockPerformanceDisplay from "./components/StockPerformanceDisplay.vue";
 import StockStatsDisplay from "./components/StockStatsDisplay.vue";
-import StockLineCandle from "./components/StockLineCandle.vue";
+import { defineAsyncComponent } from "vue";
+
+const StockNewsCarousel = defineAsyncComponent(() =>
+  import(
+    /* webpackChunkName: "stock-news-carousel" */ "./components/StockNewsCarousel.vue"
+  )
+);
 export default {
   name: "App",
   components: {
@@ -240,7 +239,7 @@ export default {
     });
   },
   mounted() {
-    setTimeout(() => (this.loading = false), 3000);
+    setTimeout(() => (this.loading = false), 5000);
   },
   watch: {
     selectedStockIndex(selectedSymbol) {

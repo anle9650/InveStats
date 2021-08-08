@@ -110,7 +110,12 @@
 </template>
 
 <script>
-import SharesInputModal from "./SharesInputModal";
+import { defineAsyncComponent } from "vue";
+const SharesInputModal = defineAsyncComponent(() =>
+  import(
+    /* webpackChunkName: "shares-input-modal" */"./SharesInputModal.vue"
+  )
+);
 export default {
   name: "stock-search",
   components: {

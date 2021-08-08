@@ -3,7 +3,16 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
+const VueCarousel = defineAsyncComponent(() =>
+  import(
+    /* webpackChunkName: "vue-carousel" */"@chenfengyuan/vue-carousel"
+  )
+);
 export default {
+  components: {
+    VueCarousel
+  },
   name: "stock-news-carousel",
   props: {
     stockSymbol: {
