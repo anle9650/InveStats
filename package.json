@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/anle9650/InveStats#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "http-status-codes": "^2.1.4",
     "mongoose": "^5.13.3"

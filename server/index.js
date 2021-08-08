@@ -1,5 +1,6 @@
 const express = require("express"),
     app = express(),
+    cors = require("cors"),
     mongoose = require("mongoose"),
     apiRoutes = require("./routes/apiRoutes");
 
@@ -18,6 +19,7 @@ app.use(
     })
 );
 app.use(express.json());
+app.use(cors());
 app.use("/api", apiRoutes);
 
 app.get(/.*/, (req, res) => res.sendFile(__dirname, "index"));
