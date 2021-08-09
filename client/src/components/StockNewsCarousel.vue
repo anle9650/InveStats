@@ -5,13 +5,11 @@
 <script>
 import { defineAsyncComponent } from "vue";
 const VueCarousel = defineAsyncComponent(() =>
-  import(
-    /* webpackChunkName: "vue-carousel" */"@chenfengyuan/vue-carousel"
-  )
+  import(/* webpackChunkName: "vue-carousel" */ "@chenfengyuan/vue-carousel")
 );
 export default {
   components: {
-    VueCarousel
+    VueCarousel,
   },
   name: "stock-news-carousel",
   props: {
@@ -30,9 +28,6 @@ export default {
   },
   data() {
     return {
-      apiHost: "api",
-      apiPath: "/news",
-      apiKey: "290461764c484a18b2e4a24fcba4a867",
       stocks: [],
     };
   },
@@ -89,11 +84,7 @@ export default {
   methods: {
     fetchArticles() {
       fetch(
-        `${this.apiHost}${this.apiPath}?q=${
-          this.stockSymbol
-        }&from=${
-          this.date.toISOString().split("T")[0]
-        }`
+        `api/news?q=${this.stockSymbol}&from=${this.date.toISOString().split("T")[0]}`
       )
         .then((response) => response.json())
         .then((json) => {

@@ -52,15 +52,7 @@
                 ></stock-stats-display>
                 <stock-performance-display
                   v-else
-                  :stocks="
-                    stocks.map((stock) => {
-                      return {
-                        shares: stock.shares,
-                        transactions: stock.transactions,
-                        intradayPrices: stock.intradayPrices,
-                      };
-                    })
-                  "
+                  :stocks="stocks"
                   :selectedStockIndex="selectedStockIndex"
                 ></stock-performance-display>
               </div>
@@ -92,28 +84,13 @@
       <div class="col-lg-4">
         <div class="mb-3">
           <stock-search
-            :stocksOwned="
-              stocks.map((stock) => {
-                return {
-                  symbol: stock.symbol,
-                  shares: stock.shares,
-                };
-              })
-            "
+            :stocksOwned="stocks"
             @buy-stock="addShares"
             @sell-stock="removeShares"
           ></stock-search>
         </div>
         <stocks-list
-          :stocks="
-            stocks.map((stock) => {
-              return {
-                symbol: stock.symbol,
-                shares: stock.shares,
-                intradayPrices: stock.intradayPrices,
-              };
-            })
-          "
+          :stocks="stocks"
           @select-stock="(index) => (selectedStockIndex = index)"
           @buy-stock="addShares"
           @sell-stock="removeShares"
