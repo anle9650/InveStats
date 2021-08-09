@@ -34,7 +34,7 @@
             data-bs-dismiss="modal"
             :disabled="!validSharesInput"
             @click="
-              $emit('confirmShares', sharesInput);
+              $emit('confirmShares', parseFloat(sharesInput));
               sharesInput = null;
             "
           >

@@ -376,7 +376,7 @@ export default {
       priceData = priceData.sort((a, b) => a.date - b.date);
       return priceData;
     },
-    addShares(symbol, shares) {
+    addShares(symbol, sharesToAdd) {
       // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock) {
@@ -385,13 +385,13 @@ export default {
           return {
             ...stock,
             ...{
-              shares: stock.shares + parseFloat(shares),
+              shares: stock.shares + sharesToAdd,
               transactions: [
                 ...stock.transactions,
                 {
                   datetime: new Date(),
                   price: stock.intradayPrices.slice(-1)[0].close,
-                  shares: parseFloat(shares),
+                  shares: sharesToAdd,
                 },
               ],
             },
@@ -416,7 +416,7 @@ export default {
       Promise.all(fetchPromises).then(() => {
         this.stocks.push({
           symbol: symbol,
-          shares: parseFloat(shares),
+          shares: sharesToAdd,
           transactions: [
             {
               datetime: new Date(),
@@ -424,7 +424,7 @@ export default {
                 intradayPrices.length > 0
                   ? intradayPrices.slice(-1)[0].close
                   : 0,
-              shares: parseFloat(shares),
+              shares: sharesToAdd,
             },
           ],
           intradayPrices: intradayPrices,
@@ -433,7 +433,7 @@ export default {
         this.transactionComplete = true;
       });
     },
-    removeShares(symbol, shares) {
+    removeShares(symbol, sharesToRemove) {
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock === undefined) return;
 
@@ -442,13 +442,13 @@ export default {
         return {
           ...stock,
           ...{
-            shares: stock.shares - parseFloat(shares),
+            shares: stock.shares - sharesToRemove,
             transactions: [
               ...stock.transactions,
               {
                 datetime: new Date(),
                 price: stock.intradayPrices.slice(-1)[0].close,
-                shares: -parseFloat(shares),
+                shares: -sharesToRemove,
               },
             ],
           },
