@@ -4,7 +4,7 @@
       <input
         type="text"
         class="form-control"
-        placeholder="Search stocks"
+        placeholder="Search stocks by symbol or name"
         aria-label="Search stocks"
         aria-describedby="search-button"
         list="datalistOptions"

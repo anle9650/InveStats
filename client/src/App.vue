@@ -2,7 +2,9 @@
   <div class="container">
     <div class="row mt-4">
       <div class="col-lg-8">
+        <!-- Loading screen, error message, or stock line/candlestick graphs -->
         <transition name="slide-fade" mode="out-in">
+          <!-- If loading, show loading screen. -->
           <div
             class="d-flex justify-content-center"
             v-if="loading && selectedIntradayPrices.length === 0"
@@ -12,14 +14,21 @@
             </div>
             <span>Loading...</span>
           </div>
-          <div v-else-if="!loading && (selectedIntradayPrices.length === 0 || selectedDailyPrices.length === 0)" class="alert alert-danger" role="alert">
+          <!-- Else if no longer loading, and selected stock has missing price data, show error message. -->
+          <div
+            v-else-if="
+              !loading &&
+              (selectedIntradayPrices.length === 0 ||
+                selectedDailyPrices.length === 0)
+            "
+            class="alert alert-danger"
+            role="alert"
+          >
             Maximum API calls exceeded. Please try again in 60 seconds, or use
             demo stock (IBM).
           </div>
-          <div
-            v-else
-            class="shadow card mb-3"
-          >
+          <!-- Else show line/candlestick graphs for selected stock. -->
+          <div v-else class="shadow card mb-3">
             <div class="card-body">
               <stock-line-candle
                 :name="selectedSymbol"
@@ -31,6 +40,7 @@
         </transition>
         <div class="row">
           <div class="col-lg-6">
+            <!-- Stock stats or personal performance. -->
             <div class="shadow card mb-3">
               <div class="card-body">
                 <h5 class="card-title d-flex justify-content-between">
@@ -46,21 +56,27 @@
                 <h6 class="card-subtitle mb-2 text-muted">
                   {{ selectedSymbol }}
                 </h6>
-                <stock-stats-display
-                  v-if="showStats"
-                  :dailyPrices="selectedDailyPrices"
-                ></stock-stats-display>
-                <stock-performance-display
-                  v-else
-                  :stocks="stocks"
-                  :selectedStockIndex="selectedStockIndex"
-                ></stock-performance-display>
+                <transition name="slide-fade" mode="out-in">
+                  <!-- If showStats, show stats. -->
+                  <stock-stats-display
+                    v-if="showStats"
+                    :dailyPrices="selectedDailyPrices"
+                  ></stock-stats-display>
+                  <!-- Else show personal performance. -->
+                  <stock-performance-display
+                    v-else
+                    :stocks="stocks"
+                    :selectedStockIndex="selectedStockIndex"
+                  ></stock-performance-display> </transition
+                >
               </div>
             </div>
           </div>
           <div class="col-lg-6">
             <div class="shadow card mb-3">
+              <!-- Donut chart displaying percentage of each stock held. -->
               <div class="card-body">
+                <!-- on click of donut slice, set selectedStockIndex to correspond to clicked slice. -->
                 <apexchart
                   type="donut"
                   :options="donutChartOptions"
@@ -74,6 +90,7 @@
             </div>
           </div>
         </div>
+        <!-- Display most recent news for selected stock. -->
         <stock-news-carousel
           class="shadow mb-3"
           v-if="mostRecentDate"
@@ -81,6 +98,7 @@
           :date="mostRecentDate"
         ></stock-news-carousel>
       </div>
+      <!-- Stock searchbar and stock list. -->
       <div class="col-lg-4">
         <div class="mb-3">
           <stock-search
@@ -97,6 +115,7 @@
         ></stocks-list>
       </div>
     </div>
+    <!-- Notification displayed upon successful stock purchase or sale. -->
     <transition name="slide-fade">
       <div
         class="
