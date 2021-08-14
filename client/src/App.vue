@@ -215,25 +215,10 @@ export default {
     };
   },
   created() {
-    this.fetchStocks().then((stocks) => {
-      this.stocks = stocks;
-
-      // Fetch stock price data.
-      let fetchPromises = [];
+    this.fetchStocks().then(() => {
       this.stocks.forEach((stock) => {
-        let shortenedSymbol = stock.symbol.split(".")[0];
-        fetchPromises.push(
-          this.fetchIntradayPrices(shortenedSymbol).then((intradayPrices) => {
-            stock.intradayPrices = intradayPrices;
-          })
-        );
-        fetchPromises.push(
-          this.fetchDailyPrices(stock.symbol).then((dailyPrices) => {
-            stock.dailyPrices = dailyPrices;
-          })
-        );
+        this.fetchStockData(stock);
       });
-      Promise.all(fetchPromises);
     });
   },
   mounted() {
@@ -241,71 +226,37 @@ export default {
   },
   watch: {
     selectedStockIndex() {
-      if (this.apiLocked) return;
-      let fetchPromises = [];
-      if (this.selectedIntradayPrices.length === 0) {
-        let shortenedSymbol = this.selectedSymbol.split(".")[0];
-        fetchPromises.push(
-          this.fetchIntradayPrices(shortenedSymbol).then(
-            (priceData) => (this.selectedStock.intradayPrices = priceData)
-          )
-        );
-      }
-      if (this.selectedDailyPrices.length === 0) {
-        fetchPromises.push(
-          this.fetchIntradayPrices(this.selectedSymbol).then(
-            (priceData) => (this.selectedStock.dailyPrices = priceData)
-          )
-        );
-      }
-      Promise.all(fetchPromises)
+      if (
+        this.selectedIntradayPrices.length != 0 &&
+        this.selectedDailyPrices.length != 0
+      )
+        return;
+
+      this.fetchStockData(this.selectedStock)
         .then(() => {
           if (
             this.selectedIntradayPrices.length === 0 ||
             this.selectedDailyPrices.length === 0
           )
             this.apiLocked = true;
+          else this.apiLocked = false;
         })
         .catch((error) => console.log(error));
     },
     apiLocked(status) {
-      if (status === true) {
-        this.apiLockTime = 60;
-        var timer = setInterval(() => {
-          this.apiLockTime--;
-          if (this.apiLockTime === 0) {
-            clearInterval(timer);
-            this.apiLocked = false;
-          }
-        }, 1000);
+      if (status === false) {
+        this.fetchStockData(this.selectedStock);
         return;
       }
 
-      let fetchPromises = [];
-      if (this.selectedIntradayPrices.length === 0) {
-        let shortenedSymbol = this.selectedSymbol.split(".")[0];
-        fetchPromises.push(
-          this.fetchIntradayPrices(shortenedSymbol).then(
-            (priceData) => (this.selectedStock.intradayPrices = priceData)
-          )
-        );
-      }
-      if (this.selectedDailyPrices.length === 0) {
-        fetchPromises.push(
-          this.fetchIntradayPrices(this.selectedSymbol).then(
-            (priceData) => (this.selectedStock.dailyPrices = priceData)
-          )
-        );
-      }
-      Promise.all(fetchPromises)
-        .then(() => {
-          if (
-            this.selectedIntradayPrices.length === 0 ||
-            this.selectedDailyPrices.length === 0
-          )
-            this.apiLocked = true;
-        })
-        .catch((error) => console.log(error));
+      this.apiLockTime = 60;
+      var timer = setInterval(() => {
+        this.apiLockTime--;
+        if (this.apiLockTime === 0) {
+          clearInterval(timer);
+          this.apiLocked = false;
+        }
+      }, 1000);
     },
     transactionComplete(status) {
       if (status === true)
@@ -367,7 +318,7 @@ export default {
             throw error;
           }),
         stocks = json.data.portfolio.stocks;
-      return stocks.map((stock) => {
+      this.stocks = stocks.map((stock) => {
         return {
           symbol: stock.symbol,
           shares: stock.shares,
@@ -375,10 +326,11 @@ export default {
         };
       });
     },
-    async fetchIntradayPrices(symbol) {
+    async fetchIntradayPrices(stock) {
+      let shortenedSymbol = stock.symbol.split(".")[0];
       const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${
-          symbol === "IBM" ? "demo" : this.apiKey
+        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${shortenedSymbol}&interval=5min&apikey=${
+          shortenedSymbol === "IBM" ? "demo" : this.apiKey
         }`
       )
         .then((response) => response.json())
@@ -386,9 +338,9 @@ export default {
           throw error;
         });
 
-      let priceData = [];
+      let intradayPrices = [];
       for (var datetime in json["Time Series (5min)"]) {
-        priceData.push({
+        intradayPrices.push({
           datetime: new Date(datetime.replace(/-/g, "/")).getTime(),
           open: json["Time Series (5min)"][datetime]["1. open"],
           high: json["Time Series (5min)"][datetime]["2. high"],
@@ -397,13 +349,17 @@ export default {
           volume: json["Time Series (5min)"][datetime]["5. volume"],
         });
       }
-      priceData = priceData.sort((a, b) => a.datetime - b.datetime);
-      return priceData;
+      intradayPrices = intradayPrices.sort((a, b) => a.datetime - b.datetime);
+      stock.intradayPrices = intradayPrices;
     },
-    async fetchDailyPrices(symbol) {
+    async fetchDailyPrices(stock) {
       const json = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=full&apikey=${
-          symbol === "IBM" || symbol === "TSCO.LON" || symbol === "SHOP.TRT"
+        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${
+          stock.symbol
+        }&outputsize=full&apikey=${
+          stock.symbol === "IBM" ||
+          stock.symbol === "TSCO.LON" ||
+          stock.symbol === "SHOP.TRT"
             ? "demo"
             : this.apiKey
         }`
@@ -413,9 +369,9 @@ export default {
           throw error;
         });
 
-      let priceData = [];
+      let dailyPrices = [];
       for (var datetime in json["Time Series (Daily)"]) {
-        priceData.push({
+        dailyPrices.push({
           date: new Date(datetime.replace(/-/g, "/")).getTime(),
           open: json["Time Series (Daily)"][datetime]["1. open"],
           high: json["Time Series (Daily)"][datetime]["2. high"],
@@ -424,60 +380,43 @@ export default {
           volume: json["Time Series (Daily)"][datetime]["5. volume"],
         });
       }
-      priceData = priceData.sort((a, b) => a.date - b.date);
-      return priceData;
+      dailyPrices = dailyPrices.sort((a, b) => a.date - b.date);
+      stock.dailyPrices = dailyPrices;
+    },
+    fetchStockData(stock) {
+      let fetchPromises = [];
+      if (!stock.intradayPrices || stock.intradayPrices.length === 0)
+        fetchPromises.push(this.fetchIntradayPrices(stock));
+      if (!stock.dailyPrices || stock.dailyPrices.length === 0)
+        fetchPromises.push(this.fetchDailyPrices(stock));
+      return Promise.all(fetchPromises);
     },
     addShares(symbol, sharesToAdd) {
       // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock) {
-        this.stocks = this.stocks.map((stock) => {
-          if (stock != existingStock) return stock;
-          return {
-            ...stock,
-            ...{
-              shares: stock.shares + sharesToAdd,
-              transactions: [
-                ...stock.transactions,
-                {
-                  datetime: new Date(),
-                  price: stock.intradayPrices.slice(-1)[0].close,
-                  shares: sharesToAdd,
-                },
-              ],
-            },
-          };
+        existingStock.shares += sharesToAdd;
+        existingStock.transactions.push({
+          datetime: new Date(),
+          price: existingStock.intradayPrices.slice(-1)[0].close,
+          shares: sharesToAdd,
         });
+
         this.transactionComplete = true;
         return;
       }
+
       // If the stock does not already exist in this.stocks, fetch the price data for the stock, then set the number of shares and record the transaction.
-      var intradayPrices, dailyPrices;
-      let shortenedSymbol = symbol.split(".")[0];
-
-      let fetchPromises = [
-        this.fetchIntradayPrices(shortenedSymbol).then(
-          (priceData) => (intradayPrices = priceData)
-        ),
-        this.fetchDailyPrices(symbol).then(
-          (priceData) => (dailyPrices = priceData)
-        ),
-      ];
-
-      Promise.all(fetchPromises).then(() => {
-        this.stocks.push({
-          symbol: symbol,
-          shares: sharesToAdd,
-          transactions: [
-            {
-              datetime: new Date(),
-              price: intradayPrices.slice(-1)[0]?.close ?? 0,
-              shares: sharesToAdd,
-            },
-          ],
-          intradayPrices: intradayPrices,
-          dailyPrices: dailyPrices,
-        });
+      let newStock = { symbol, shares: sharesToAdd };
+      this.fetchStockData(newStock).then(() => {
+        newStock.transactions = [
+          {
+            datetime: new Date(),
+            price: newStock.intradayPrices.slice(-1)[0]?.close ?? 0,
+            shares: sharesToAdd,
+          },
+        ];
+        this.stocks.push(newStock);
         this.transactionComplete = true;
       });
     },
@@ -485,22 +424,11 @@ export default {
       let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
       if (existingStock === undefined) return;
 
-      this.stocks = this.stocks.map((stock) => {
-        if (stock != existingStock) return stock;
-        return {
-          ...stock,
-          ...{
-            shares: stock.shares - sharesToRemove,
-            transactions: [
-              ...stock.transactions,
-              {
-                datetime: new Date(),
-                price: stock.intradayPrices.slice(-1)[0].close,
-                shares: -sharesToRemove,
-              },
-            ],
-          },
-        };
+      existingStock.shares -= sharesToRemove;
+      existingStock.transactions.push({
+        datetime: new Date(),
+        price: existingStock.intradayPrices.slice(-1)[0].close,
+        shares: -sharesToRemove,
       });
       this.transactionComplete = true;
     },
