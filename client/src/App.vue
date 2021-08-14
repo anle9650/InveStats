@@ -24,8 +24,8 @@
             class="alert alert-danger"
             role="alert"
           >
-            Maximum API calls exceeded. Please try again in 60 seconds, or use
-            demo stock (IBM).
+            Maximum API calls exceeded. Please try again in
+            {{ apiLockTime }} seconds, or use demo stock (IBM).
           </div>
           <!-- Else show line/candlestick graphs for selected stock. -->
           <div v-else class="shadow card mb-3">
@@ -67,8 +67,8 @@
                     v-else
                     :stocks="stocks"
                     :selectedStockIndex="selectedStockIndex"
-                  ></stock-performance-display> </transition
-                >
+                  ></stock-performance-display>
+                </transition>
               </div>
             </div>
           </div>
@@ -169,6 +169,8 @@ export default {
       portfolioId: "60fb9d7a50c8612b1fc884a0",
       apiKey: "1V4VMMH8KUPV4I15",
       loading: true,
+      apiLocked: false,
+      apiLockTime: 0,
       stocks: [],
       selectedStockIndex: 0,
       showStats: false,
@@ -238,25 +240,72 @@ export default {
     setTimeout(() => (this.loading = false), 5000);
   },
   watch: {
-    selectedStockIndex(selectedSymbol) {
+    selectedStockIndex() {
+      if (this.apiLocked) return;
       let fetchPromises = [];
       if (this.selectedIntradayPrices.length === 0) {
         let shortenedSymbol = this.selectedSymbol.split(".")[0];
         fetchPromises.push(
           this.fetchIntradayPrices(shortenedSymbol).then(
-            (priceData) =>
-              (this.stocks[selectedSymbol].intradayPrices = priceData)
+            (priceData) => (this.selectedStock.intradayPrices = priceData)
           )
         );
       }
       if (this.selectedDailyPrices.length === 0) {
         fetchPromises.push(
           this.fetchIntradayPrices(this.selectedSymbol).then(
-            (priceData) => (this.stocks[selectedSymbol].dailyPrices = priceData)
+            (priceData) => (this.selectedStock.dailyPrices = priceData)
           )
         );
       }
-      Promise.all(fetchPromises).catch((error) => console.log(error));
+      Promise.all(fetchPromises)
+        .then(() => {
+          if (
+            this.selectedIntradayPrices.length === 0 ||
+            this.selectedDailyPrices.length === 0
+          )
+            this.apiLocked = true;
+        })
+        .catch((error) => console.log(error));
+    },
+    apiLocked(status) {
+      if (status === true) {
+        this.apiLockTime = 60;
+        var timer = setInterval(() => {
+          this.apiLockTime--;
+          if (this.apiLockTime === 0) {
+            clearInterval(timer);
+            this.apiLocked = false;
+          }
+        }, 1000);
+        return;
+      }
+
+      let fetchPromises = [];
+      if (this.selectedIntradayPrices.length === 0) {
+        let shortenedSymbol = this.selectedSymbol.split(".")[0];
+        fetchPromises.push(
+          this.fetchIntradayPrices(shortenedSymbol).then(
+            (priceData) => (this.selectedStock.intradayPrices = priceData)
+          )
+        );
+      }
+      if (this.selectedDailyPrices.length === 0) {
+        fetchPromises.push(
+          this.fetchIntradayPrices(this.selectedSymbol).then(
+            (priceData) => (this.selectedStock.dailyPrices = priceData)
+          )
+        );
+      }
+      Promise.all(fetchPromises)
+        .then(() => {
+          if (
+            this.selectedIntradayPrices.length === 0 ||
+            this.selectedDailyPrices.length === 0
+          )
+            this.apiLocked = true;
+        })
+        .catch((error) => console.log(error));
     },
     transactionComplete(status) {
       if (status === true)
@@ -280,24 +329,13 @@ export default {
       return this.stocks[this.selectedStockIndex];
     },
     selectedSymbol() {
-      if (this.stocks.length === 0) return "";
-      return this.selectedStock.symbol;
+      return this.selectedStock?.symbol ?? "";
     },
     selectedIntradayPrices() {
-      if (
-        this.stocks.length === 0 ||
-        typeof this.selectedStock.intradayPrices === "undefined"
-      )
-        return [];
-      return this.selectedStock.intradayPrices;
+      return this.selectedStock?.intradayPrices ?? [];
     },
     selectedDailyPrices() {
-      if (
-        this.stocks.length === 0 ||
-        typeof this.selectedStock.dailyPrices === "undefined"
-      )
-        return [];
-      return this.selectedStock.dailyPrices;
+      return this.selectedStock?.dailyPrices ?? [];
     },
     mostRecentDate() {
       if (this.selectedIntradayPrices.length === 0) return null;
@@ -315,13 +353,7 @@ export default {
     },
     allStockHoldings() {
       let holdings = this.stocks.map((stock) => {
-        if (
-          typeof stock.intradayPrices === "undefined" ||
-          stock.intradayPrices.length === 0
-        )
-          return 0;
-
-        let currentPrice = stock.intradayPrices.slice(-1)[0].close;
+        let currentPrice = stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
         return stock.shares * currentPrice;
       });
       return holdings;
@@ -439,10 +471,7 @@ export default {
           transactions: [
             {
               datetime: new Date(),
-              price:
-                intradayPrices.length > 0
-                  ? intradayPrices.slice(-1)[0].close
-                  : 0,
+              price: intradayPrices.slice(-1)[0]?.close ?? 0,
               shares: sharesToAdd,
             },
           ],
