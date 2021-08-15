@@ -295,13 +295,6 @@ export default {
     allSymbols() {
       return this.stocks.map((stock) => stock.symbol);
     },
-    allStockShares() {
-      let allStockShares = this.stocks.map((stock) => {
-        if (stock.shares) return stock.shares;
-        return 0;
-      });
-      return allStockShares;
-    },
     allStockHoldings() {
       let holdings = this.stocks.map((stock) => {
         let currentPrice = stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
@@ -316,15 +309,8 @@ export default {
           .then((response) => response.json())
           .catch((error) => {
             throw error;
-          }),
-        stocks = json.data.portfolio.stocks;
-      this.stocks = stocks.map((stock) => {
-        return {
-          symbol: stock.symbol,
-          shares: stock.shares,
-          transactions: stock.transactions,
-        };
-      });
+          });
+      this.stocks = json.data.portfolio.stocks;
     },
     async fetchIntradayPrices(stock) {
       let shortenedSymbol = stock.symbol.split(".")[0];
