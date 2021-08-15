@@ -104,7 +104,8 @@ export default {
   },
   methods: {
     getStartPrice(stock) {
-      if (typeof stock.intradayPrices === "undefined" || stock.intradayPrices.length === 0) return 0;
+      if (!stock.intradayPrices || stock.intradayPrices.length === 0) return 0;
+
       let today = new Date(
           stock.intradayPrices.slice(-1)[0].datetime
         ).getDate(),
@@ -115,8 +116,9 @@ export default {
         return stock.intradayPrices[todayStartIndex].close;
     },
     getEndPrice(stock) {
-      if (typeof stock.intradayPrices === "undefined" || stock.intradayPrices.length === 0) return 0;
-      return stock.intradayPrices.slice(-1)[0].close;
+      // if (!stock.intradayPrices || stock.intradayPrices.length === 0) return 0;
+
+      return stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
     },
     getPriceChange(stock) {
       let startPrice = this.getStartPrice(stock),
