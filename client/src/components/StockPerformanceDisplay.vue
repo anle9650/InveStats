@@ -90,11 +90,13 @@ export default {
       return this.selectedStock?.shares ?? 0;
     },
     stockTotalCost() {
-      return this.selectedStock?.transactions?.reduce(
-        (totalCost, transaction) =>
-          totalCost + transaction.price * transaction.shares,
-        0
-      ) ?? 0;
+      return (
+        this.selectedStock?.transactions?.reduce(
+          (totalCost, transaction) =>
+            totalCost + transaction.price * transaction.shares,
+          0
+        ) ?? 0
+      );
     },
     stockAverageCost() {
       if (this.stockShares === 0) return this.stockTotalCost;
@@ -118,15 +120,27 @@ export default {
       )
         return 0;
 
-      let today = new Date(
+      let endDay = new Date(
           this.selectedStock.intradayPrices.slice(-1)[0].datetime
         ),
-        startDayIndex = this.selectedStock.intradayPrices.findIndex((priceData) => {
-          let datetime = new Date(priceData.datetime);
-          return datetime.getDate() === today.getDate();
-        }),
-        startDayPrice = this.selectedStock.intradayPrices[startDayIndex].close;
-      return ((this.stockPrice - startDayPrice) * this.stockShares).toFixed(2);
+        startDayIndex = this.selectedStock.intradayPrices.findIndex(
+          (priceData) => {
+            let datetime = new Date(priceData.datetime);
+            return datetime.getDate() === endDay.getDate();
+          }
+        ),
+        startDayPrice = this.selectedStock.intradayPrices[startDayIndex].close,
+        startDayShares = this.selectedStock.transactions?.reduce(
+          (totalShares, transaction) => {
+            let transactionTime = new Date(transaction.datetime);
+            if (transactionTime <= endDay)
+              return totalShares + transaction.shares;
+            return totalShares;
+          },
+          0
+        ) ?? 0;
+
+      return ((this.stockPrice - startDayPrice) * startDayShares).toFixed(2);
     },
     stockTotalReturns() {
       return (this.stockValue - this.stockTotalCost).toFixed(2);
