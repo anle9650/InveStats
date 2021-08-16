@@ -94,7 +94,7 @@
         <stock-news-carousel
           class="shadow mb-3"
           v-if="mostRecentDate"
-          :stockSymbol="selectedSymbol.split('.')[0]"
+          :selectedStock="selectedStock"
           :date="mostRecentDate"
         ></stock-news-carousel>
       </div>

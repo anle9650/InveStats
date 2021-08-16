@@ -13,8 +13,8 @@ export default {
   },
   name: "stock-news-carousel",
   props: {
-    stockSymbol: {
-      type: String,
+    selectedStock: {
+      type: Object,
       required: true,
     },
     date: {
@@ -32,9 +32,9 @@ export default {
     };
   },
   watch: {
-    stockSymbol: {
-      handler(newSymbol) {
-        if (this.stocks.includes((stock) => stock.symbol === newSymbol)) return;
+    selectedStock: {
+      handler(selectedStock) {
+        if (this.stocks.includes((stock) => stock.symbol === selectedStock.symbol)) return;
         this.fetchArticles();
       },
       immediate: true,
@@ -43,7 +43,7 @@ export default {
   computed: {
     selectedStockArticles() {
       let selectedStock = this.stocks.find(
-        (stock) => stock.symbol === this.stockSymbol
+        (stock) => stock.symbol === this.selectedStock.symbol
       );
       if (!selectedStock) return [];
       return selectedStock.articles;
@@ -64,7 +64,7 @@ export default {
                 <div class="card-body">
                     <h5 class="card-title">${article.title}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">${
-                      this.stockSymbol
+                      this.selectedStock.symbol
                     }</h6>
                     <p class="card-text">${
                       new DOMParser().parseFromString(
@@ -84,7 +84,7 @@ export default {
   methods: {
     fetchArticles() {
       fetch(
-        `api/news?q=${this.stockSymbol}&from=${this.date.toISOString().split("T")[0]}`
+        `api/news?q=${this.selectedStock.name}&from=${this.date.toISOString().split("T")[0]}`
       )
         .then((response) => response.json())
         .then((json) => {
@@ -100,8 +100,8 @@ export default {
               };
             });
           this.stocks.push({
-            symbol: this.stockSymbol,
-            articles: articles,
+            ...this.selectedStock,
+            articles,
           });
         });
     },
