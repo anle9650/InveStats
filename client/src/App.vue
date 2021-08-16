@@ -118,18 +118,27 @@
     <!-- Notification displayed upon successful stock purchase or sale. -->
     <transition name="slide-fade">
       <div
-        class="
-          alert alert-success alert-dismissible
-          fade
-          show
-          position-sticky
-          bottom-0
-        "
+        v-if="showAlert"
+        :class="[
+          'alert',
+          apiLocked ? 'alert-danger' : 'alert-success',
+          'alert-dismissible',
+          'fade',
+          'show',
+          'position-sticky',
+          'bottom-0',
+        ]"
         role="alert"
-        v-if="transactionComplete"
       >
-        <i class="bi bi-check-circle me-2"></i>
-        <strong>Success</strong> Your transaction is complete.
+        <i
+          :class="['bi', apiLocked ? 'bi-x-circle' : 'bi-check-circle', 'me-2']"
+        ></i>
+        <strong>{{ apiLocked ? "Error" : "Success" }}</strong>
+        {{
+          apiLocked
+            ? `Maximum API calls exceeded. Unable to complete transaction. Please try again in ${apiLockTime} seconds.`
+            : "Your transaction is complete."
+        }}
         <button
           type="button"
           class="btn-close"
@@ -174,7 +183,7 @@ export default {
       stocks: [],
       selectedStockIndex: 0,
       showStats: false,
-      transactionComplete: false,
+      showAlert: false,
       donutChartOptions: {
         title: {
           text: "Holdings Summary",
@@ -258,9 +267,8 @@ export default {
         }
       }, 1000);
     },
-    transactionComplete(status) {
-      if (status === true)
-        setTimeout(() => (this.transactionComplete = false), 3000);
+    showAlert(status) {
+      if (status === true) setTimeout(() => (this.showAlert = false), 5000);
     },
     stocks: {
       deep: true,
@@ -306,10 +314,10 @@ export default {
   methods: {
     async fetchStocks() {
       const json = await fetch(`api/portfolios/${this.portfolioId}`)
-          .then((response) => response.json())
-          .catch((error) => {
-            throw error;
-          });
+        .then((response) => response.json())
+        .catch((error) => {
+          throw error;
+        });
       this.stocks = json.data.portfolio.stocks;
     },
     async fetchIntradayPrices(stock) {
@@ -388,13 +396,18 @@ export default {
           shares: sharesToAdd,
         });
 
-        this.transactionComplete = true;
+        this.showAlert = true;
         return;
       }
 
       // If the stock does not already exist in this.stocks, fetch the price data for the stock, then set the number of shares and record the transaction.
       let newStock = { symbol, shares: sharesToAdd };
       this.fetchStockData(newStock).then(() => {
+        if (newStock.intradayPrices.length === 0) {
+          this.apiLocked = true;
+          this.showAlert = true;
+          return;
+        }
         newStock.transactions = [
           {
             datetime: new Date(),
@@ -403,7 +416,8 @@ export default {
           },
         ];
         this.stocks.push(newStock);
-        this.transactionComplete = true;
+        this.apiLocked = false;
+        this.showAlert = true;
       });
     },
     removeShares(symbol, sharesToRemove) {
@@ -416,7 +430,7 @@ export default {
         price: existingStock.intradayPrices.slice(-1)[0].close,
         shares: -sharesToRemove,
       });
-      this.transactionComplete = true;
+      this.showAlert = true;
     },
   },
 };
