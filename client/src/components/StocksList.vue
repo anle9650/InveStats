@@ -65,7 +65,7 @@
       type="buy"
       :symbol="stockToBuy ? stockToBuy.symbol : null"
       @confirm-shares="
-        (confirmedShares) => $emit('buyStock', stockToBuy ? stockToBuy.symbol : null, confirmedShares)
+        (confirmedShares) => $emit('buyStock', stockToBuy, confirmedShares)
       "
     ></shares-input-modal>
     <shares-input-modal
@@ -74,7 +74,7 @@
       :symbol="stockToSell ? stockToSell.symbol : null"
       :sharesOwned="stockToSell ? stockToSell.shares : 0"
       @confirm-shares="
-        (confirmedShares) => $emit('sellStock', stockToSell ? stockToSell.symbol : null, confirmedShares)
+        (confirmedShares) => $emit('sellStock', stockToSell, confirmedShares)
       "
     ></shares-input-modal>
   </div>

@@ -2,6 +2,10 @@ const mongoose = require("mongoose"),
     { Schema } = mongoose,
 
     stockSchema = new Schema({
+        name: {
+            type: String,
+            required: true,
+        },
         symbol: {
             type: String,
             required: true,

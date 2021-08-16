@@ -385,43 +385,46 @@ export default {
         fetchPromises.push(this.fetchDailyPrices(stock));
       return Promise.all(fetchPromises);
     },
-    addShares(symbol, sharesToAdd) {
-      // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
-      let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
-      if (existingStock) {
-        existingStock.shares += sharesToAdd;
-        existingStock.transactions.push({
-          datetime: new Date(),
-          price: existingStock.intradayPrices.slice(-1)[0].close,
-          shares: sharesToAdd,
-        });
-
-        this.showAlert = true;
-        return;
-      }
-
-      // If the stock does not already exist in this.stocks, fetch the price data for the stock, then set the number of shares and record the transaction.
-      let newStock = { symbol, shares: sharesToAdd };
+    addStock(newStock) {
       this.fetchStockData(newStock).then(() => {
         if (newStock.intradayPrices.length === 0) {
           this.apiLocked = true;
-          this.showAlert = true;
           return;
         }
+
         newStock.transactions = [
           {
             datetime: new Date(),
-            price: newStock.intradayPrices.slice(-1)[0]?.close ?? 0,
-            shares: sharesToAdd,
+            price: newStock.intradayPrices.slice(-1)[0].close,
+            shares: newStock.shares
           },
         ];
         this.stocks.push(newStock);
         this.apiLocked = false;
-        this.showAlert = true;
       });
     },
-    removeShares(symbol, sharesToRemove) {
-      let existingStock = this.stocks.find((stock) => stock.symbol === symbol);
+    addShares(stockToBuy, sharesToAdd) {
+      let existingStock = this.stocks.find((stock) => stock.symbol === stockToBuy.symbol);
+
+      // If the stock does not already exist in this.stocks, add the stock.
+      if (!existingStock) {
+        stockToBuy.shares = sharesToAdd;
+        this.addStock(stockToBuy);
+        this.showAlert = true;
+        return;
+      }
+
+      // If the stock already exists in this.stocks, update the number of shares held, and record the transaction.
+      existingStock.shares += sharesToAdd;
+      existingStock.transactions.push({
+        datetime: new Date(),
+        price: existingStock.intradayPrices.slice(-1)[0].close,
+        shares: sharesToAdd,
+      });
+      this.showAlert = true;
+    },
+    removeShares(stockToSell, sharesToRemove) {
+      let existingStock = this.stocks.find((stock) => stock.symbol === stockToSell.symbol);
       if (existingStock === undefined) return;
 
       existingStock.shares -= sharesToRemove;

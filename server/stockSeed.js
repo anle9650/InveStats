@@ -10,6 +10,8 @@ mongoose.connect(
 Stock.remove({})
     .then(() => {
         return Stock.create({
+            _id: "60fb97a4c0d03d2840ef2dec",
+            name: "International Business Machines Corp",
             symbol: "IBM",
             transactions: [
                 {
@@ -20,9 +22,11 @@ Stock.remove({})
             ],
         });
     })
-    .then(stock => console.log(`${stock.symbol}, ${stock.averageCost}`))
+    .then(stock => console.log(stock.name))
     .then(() => {
         return Stock.create({
+            _id: "60fb97a5c0d03d2840ef2def",
+            name: "Tesco PLC",
             symbol: "TSCO.LON",
             transactions: [
                 {
@@ -33,9 +37,11 @@ Stock.remove({})
             ],
         });
     })
-    .then(stock => console.log(`${stock.symbol}, ${stock.averageCost}`))
+    .then(stock => console.log(stock.name))
     .then(() => {
         return Stock.create({
+            _id: "60fb97a5c0d03d2840ef2df2",
+            name: "Shopify Inc",
             symbol: "SHOP.TRT",
             transactions: [
                 {
@@ -46,7 +52,7 @@ Stock.remove({})
             ],
         });
     })
-    .then(stock => console.log(`${stock.symbol}, ${stock.averageCost}`))
+    .then(stock => console.log(stock.name))
     .catch(error => console.log(error.message))
     .then(() => {
         console.log("DONE");

@@ -93,7 +93,7 @@
       :symbol="stockToBuy ? stockToBuy.symbol : null"
       previousModal="#searchResultsModal"
       @confirm-shares="
-        (confirmedShares) => $emit('buyStock', stockToBuy ? stockToBuy.symbol : null, confirmedShares)
+        (confirmedShares) => $emit('buyStock', stockToBuy, confirmedShares)
       "
     ></shares-input-modal>
     <shares-input-modal
@@ -103,7 +103,7 @@
       :sharesOwned="stockToSell ? stockToSell.shares : 0"
       previousModal="#searchResultsModal"
       @confirm-shares="
-        (confirmedShares) => $emit('sellStock', stockToSell ? stockToSell.symbol : null, confirmedShares)
+        (confirmedShares) => $emit('sellStock', stockToSell, confirmedShares)
       "
     ></shares-input-modal>
   </div>
