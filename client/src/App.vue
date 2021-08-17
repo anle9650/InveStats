@@ -396,7 +396,7 @@ export default {
           {
             datetime: new Date(),
             price: newStock.intradayPrices.slice(-1)[0].close,
-            shares: newStock.shares
+            shares: newStock.shares ?? 0
           },
         ];
         this.stocks.push(newStock);

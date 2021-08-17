@@ -10,6 +10,7 @@ mongoose.connect(
 Portfolio.remove({})
     .then(() => {
         return Portfolio.create({
+            _id: "60fb9d7a50c8612b1fc884a0",
             stocks: ["60fb97a4c0d03d2840ef2dec", "60fb97a5c0d03d2840ef2def", "60fb97a5c0d03d2840ef2df2"]  
         });
     })

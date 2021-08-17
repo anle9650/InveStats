@@ -132,8 +132,8 @@ export default {
         startDayPrice = this.selectedStock.intradayPrices[startDayIndex].close,
         startDayShares = this.selectedStock.transactions?.reduce(
           (totalShares, transaction) => {
-            let transactionTime = new Date(transaction.datetime);
-            if (transactionTime <= endDay)
+            let transactionDatetime = new Date(transaction.datetime);
+            if (transactionDatetime <= endDay)
               return totalShares + transaction.shares;
             return totalShares;
           },

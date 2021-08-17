@@ -175,8 +175,7 @@ export default {
     },
     getSharesOwned(stock) {
       let ownedStock = this.stocksOwned.find((ownedStock) => ownedStock.symbol === stock.symbol);
-      if (ownedStock) return ownedStock.shares;
-      return 0;
+      return ownedStock?.shares ?? 0;
     },
   },
 };

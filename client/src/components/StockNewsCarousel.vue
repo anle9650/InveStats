@@ -45,8 +45,7 @@ export default {
       let selectedStock = this.stocks.find(
         (stock) => stock.symbol === this.selectedStock.symbol
       );
-      if (!selectedStock) return [];
-      return selectedStock.articles;
+      return selectedStock?.articles ?? [];
     },
     carouselData() {
       if (this.selectedStockArticles.length === 0)
