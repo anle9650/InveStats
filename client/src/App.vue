@@ -386,7 +386,7 @@ export default {
       return Promise.all(fetchPromises);
     },
     addStock(newStock) {
-      this.fetchStockData(newStock).then(() => {
+      return this.fetchStockData(newStock).then(() => {
         if (newStock.intradayPrices.length === 0) {
           this.apiLocked = true;
           return;
@@ -401,7 +401,7 @@ export default {
         ];
         this.stocks.push(newStock);
         this.apiLocked = false;
-      });
+      })
     },
     addShares(stockToBuy, sharesToAdd) {
       let existingStock = this.stocks.find((stock) => stock.symbol === stockToBuy.symbol);
@@ -409,8 +409,7 @@ export default {
       // If the stock does not already exist in this.stocks, add the stock.
       if (!existingStock) {
         stockToBuy.shares = sharesToAdd;
-        this.addStock(stockToBuy);
-        this.showAlert = true;
+        this.addStock(stockToBuy).then(() => this.showAlert = true);
         return;
       }
 
