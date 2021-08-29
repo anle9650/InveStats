@@ -19,9 +19,7 @@
                 <i
                   :class="[getPriceChange(stock) >= 0 ? upArrow : downArrow]"
                 ></i>
-                ${{ Math.abs(getPriceChange(stock)) }} ({{
-                  Math.abs(getPercentChange(stock))
-                }}%) Past Day
+                ${{ Math.abs(getPriceChange(stock)) }} ({{ Math.abs(getPercentChange(stock)) }}%) Past Day
               </small>
             </div>
             <p class="mb-1">${{ getEndPrice(stock) }}</p>
@@ -97,6 +95,18 @@ export default {
       stockToSell: null,
     };
   },
+  computed: {
+    allTransactions() {
+      let allTransactions = [];
+      this.stocks.forEach(stock => {
+        stock.transactions.forEach(transaction => {
+          allTransactions.push({ ...transaction, symbol: stock.symbol });
+        });
+      });
+      allTransactions.sort((a, b) => b.datetime - a.datetime);
+      return allTransactions;
+    }
+  },
   methods: {
     getStartPrice(stock) {
       if (!stock.intradayPrices || stock.intradayPrices.length === 0) return 0;
@@ -105,12 +115,12 @@ export default {
         stock.intradayPrices.slice(-1)[0].datetime
       ).getDate();
       
-      const todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
+      const todayStartPrices = stock.intradayPrices.find((priceData) => {
         const date = new Date(priceData.datetime).getDate();
         return date === today;
       });
 
-      return stock.intradayPrices[todayStartIndex].close;
+      return todayStartPrices.close;
     },
     getEndPrice(stock) {
       return stock.intradayPrices?.slice(-1)[0]?.close ?? 0;

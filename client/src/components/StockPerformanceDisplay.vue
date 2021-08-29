@@ -120,25 +120,26 @@ export default {
       )
         return 0;
 
-      let endDay = new Date(
-          this.selectedStock.intradayPrices.slice(-1)[0].datetime
-        ),
-        startDayIndex = this.selectedStock.intradayPrices.findIndex(
-          (priceData) => {
-            let datetime = new Date(priceData.datetime);
-            return datetime.getDate() === endDay.getDate();
-          }
-        ),
-        startDayPrice = this.selectedStock.intradayPrices[startDayIndex].close,
-        startDayShares = this.selectedStock.transactions?.reduce(
-          (totalShares, transaction) => {
-            let transactionDatetime = new Date(transaction.datetime);
-            if (transactionDatetime <= endDay)
-              return totalShares + transaction.shares;
-            return totalShares;
-          },
-          0
-        ) ?? 0;
+      const endDay = new Date(
+        this.selectedStock.intradayPrices.slice(-1)[0].datetime
+      );
+
+      const startDayPrices = this.selectedStock.intradayPrices.find(
+        (priceData) => {
+          const datetime = new Date(priceData.datetime);
+          return datetime.getDate() === endDay.getDate();
+        }
+      );
+
+      const startDayPrice = startDayPrices.close;
+
+      const startDayShares =
+        this.selectedStock.transactions?.reduce((totalShares, transaction) => {
+          const transactionDatetime = new Date(transaction.datetime);
+          if (transactionDatetime <= endDay)
+            return totalShares + transaction.shares;
+          return totalShares;
+        }, 0) ?? 0;
 
       return ((this.stockPrice - startDayPrice) * startDayShares).toFixed(2);
     },

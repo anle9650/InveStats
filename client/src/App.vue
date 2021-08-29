@@ -304,8 +304,8 @@ export default {
       return this.stocks.map((stock) => stock.symbol);
     },
     allStockHoldings() {
-      let holdings = this.stocks.map((stock) => {
-        let currentPrice = stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
+      const holdings = this.stocks.map((stock) => {
+        const currentPrice = stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
         return stock.shares * currentPrice;
       });
       return holdings;
@@ -321,9 +321,7 @@ export default {
     async fetchIntradayPrices(stock) {
       const shortenedSymbol = stock.symbol.split(".")[0];
       const response = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${shortenedSymbol}&interval=5min&apikey=${
-          shortenedSymbol === "IBM" ? "demo" : this.apiKey
-        }`
+        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${shortenedSymbol}&interval=5min&apikey=${shortenedSymbol === "IBM" ? "demo" : this.apiKey}`
       );
       const data = await response.json();
 
@@ -343,9 +341,7 @@ export default {
     },
     async fetchDailyPrices(stock) {
       const response = await fetch(
-        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${
-          stock.symbol
-        }&outputsize=full&apikey=${
+        `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${stock.symbol}&outputsize=full&apikey=${
           stock.symbol === "IBM" ||
           stock.symbol === "TSCO.LON" ||
           stock.symbol === "SHOP.TRT"

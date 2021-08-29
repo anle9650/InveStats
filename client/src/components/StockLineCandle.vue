@@ -186,83 +186,92 @@ export default {
     pastDay() {
       if (this.apexIntradayPrices.length === 0) return [];
 
-      let today = new Date(
-          this.apexIntradayPrices[this.apexIntradayPrices.length - 1].x
-        ),
-        todayStartIndex = this.apexIntradayPrices.findIndex((priceData) => {
-          let datetime = new Date(priceData.x);
-          return datetime.getDate() === today.getDate();
-        }),
-        todayPrices = this.apexIntradayPrices.slice(todayStartIndex);
+      const today = new Date(
+        this.apexIntradayPrices[this.apexIntradayPrices.length - 1].x
+      );
 
-      return todayPrices;
+      const todayStartIndex = this.apexIntradayPrices.findIndex((priceData) => {
+        const datetime = new Date(priceData.x);
+        return datetime.getDate() === today.getDate();
+      });
+
+      return this.apexIntradayPrices.slice(todayStartIndex);
     },
     pastWeek() {
-      let pastWeekPrices = this.apexDailyPrices.slice(-WEEKLY_TRADING_DAYS);
-      return pastWeekPrices;
+      return this.apexDailyPrices.slice(-WEEKLY_TRADING_DAYS);
     },
     pastMTD() {
       if (this.apexDailyPrices.length === 0) return [];
 
-      let currentYear = new Date(this.apexDailyPrices.slice(-1)[0].x).getFullYear(),
-        currentMonth = new Date(this.apexDailyPrices.slice(-1)[0].x).getMonth(),
-        monthStartIndex = this.apexDailyPrices.findIndex((priceData) => {
-          let date = new Date(priceData.x);
-          return (
-            date.getFullYear() === currentYear &&
-            date.getMonth() === currentMonth
-          );
-        }),
-        pricesMTD = this.apexDailyPrices.slice(monthStartIndex);
+      const currentYear = new Date(
+        this.apexDailyPrices.slice(-1)[0].x
+      ).getFullYear();
 
-      return pricesMTD;
+      const currentMonth = new Date(
+        this.apexDailyPrices.slice(-1)[0].x
+      ).getMonth();
+
+      const monthStartIndex = this.apexDailyPrices.findIndex((priceData) => {
+        const date = new Date(priceData.x);
+        return (
+          date.getFullYear() === currentYear && date.getMonth() === currentMonth
+        );
+      });
+
+      return this.apexDailyPrices.slice(monthStartIndex);
     },
     pastMonth() {
-      let pastMonthPrices = this.apexDailyPrices.slice(-MONTHLY_TRADING_DAYS);
-      return pastMonthPrices;
+      return this.apexDailyPrices.slice(-MONTHLY_TRADING_DAYS);
     },
     pastYTD() {
       if (this.apexDailyPrices.length === 0) return [];
 
-      let currentYear = new Date(this.apexDailyPrices.slice(-1)[0].x).getFullYear(),
-        yearStartIndex = this.apexDailyPrices.findIndex((priceData) => {
-          let date = new Date(priceData.x);
-          return date.getFullYear() === currentYear;
-        }),
-        pricesYTD = this.apexDailyPrices.slice(yearStartIndex);
+      const currentYear = new Date(
+        this.apexDailyPrices.slice(-1)[0].x
+      ).getFullYear();
 
-      return pricesYTD;
+      const yearStartIndex = this.apexDailyPrices.findIndex((priceData) => {
+        const date = new Date(priceData.x);
+        return date.getFullYear() === currentYear;
+      });
+
+      return this.apexDailyPrices.slice(yearStartIndex);
     },
     pastYear() {
-      let pastYearPrices = this.apexDailyPrices.slice(-YEARLY_TRADING_DAYS);
-      return pastYearPrices;
+      return this.apexDailyPrices.slice(-YEARLY_TRADING_DAYS);
     },
     past5Years() {
-      let past5YearPrices = this.apexDailyPrices.slice(-YEARLY_TRADING_DAYS * 5);
-      return past5YearPrices;
+      return this.apexDailyPrices.slice(-YEARLY_TRADING_DAYS * 5);
     },
     selectedData() {
       switch (this.timeframe) {
-        case "Past Week": return this.pastWeek;
-        case "Month to Date": return this.pastMTD;
-        case "Past Month": return this.pastMonth;
-        case "Year to Date": return this.pastYTD;
-        case "Past Year": return this.pastYear;
-        case "Past 5 Years": return this.past5Years;
-        default: return this.pastDay;
+        case "Past Week":
+          return this.pastWeek;
+        case "Month to Date":
+          return this.pastMTD;
+        case "Past Month":
+          return this.pastMonth;
+        case "Year to Date":
+          return this.pastYTD;
+        case "Past Year":
+          return this.pastYear;
+        case "Past 5 Years":
+          return this.past5Years;
+        default:
+          return this.pastDay;
       }
     },
     priceChange() {
       if (this.selectedData.length === 0) return 0;
 
-      let startPrice = this.selectedData[0].y[3],
+      const startPrice = this.selectedData[0].y[3],
         endPrice = this.selectedData.slice(-1)[0].y[3];
       return (endPrice - startPrice).toFixed(4);
     },
     percentChange() {
       if (this.selectedData.length === 0) return 0;
 
-      let startPrice = this.selectedData[0].y[3];
+      const startPrice = this.selectedData[0].y[3];
       if (startPrice === 0) return 0;
       return ((this.priceChange / startPrice) * 100).toFixed(2);
     },
@@ -279,7 +288,7 @@ export default {
         });
       } else priceData = this.selectedData;
 
-      let series = {
+      const series = {
         name: this.name,
         data: priceData,
       };
