@@ -46,10 +46,7 @@
                   data-bs-target="#sellSharesInputModal"
                   data-bs-toggle="modal"
                   data-bs-dismiss="modal"
-                  :disabled="
-                    stock.shares === 0 ||
-                    getEndPrice(stock) === 0
-                  "
+                  :disabled="stock.shares === 0 || getEndPrice(stock) === 0"
                   @click="stockToSell = stock"
                 >
                   Sell
@@ -83,9 +80,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 const SharesInputModal = defineAsyncComponent(() =>
-  import(
-    /* webpackChunkName: "shares-input-modal" */"./SharesInputModal.vue"
-  )
+  import(/* webpackChunkName: "shares-input-modal" */ "./SharesInputModal.vue")
 );
 export default {
   components: { SharesInputModal },
@@ -106,25 +101,27 @@ export default {
     getStartPrice(stock) {
       if (!stock.intradayPrices || stock.intradayPrices.length === 0) return 0;
 
-      let today = new Date(
-          stock.intradayPrices.slice(-1)[0].datetime
-        ).getDate(),
-        todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
-          let date = new Date(priceData.datetime).getDate();
-          return date === today;
-        });
-        return stock.intradayPrices[todayStartIndex].close;
+      const today = new Date(
+        stock.intradayPrices.slice(-1)[0].datetime
+      ).getDate();
+      
+      const todayStartIndex = stock.intradayPrices.findIndex((priceData) => {
+        const date = new Date(priceData.datetime).getDate();
+        return date === today;
+      });
+
+      return stock.intradayPrices[todayStartIndex].close;
     },
     getEndPrice(stock) {
       return stock.intradayPrices?.slice(-1)[0]?.close ?? 0;
     },
     getPriceChange(stock) {
-      let startPrice = this.getStartPrice(stock),
+      const startPrice = this.getStartPrice(stock),
         endPrice = this.getEndPrice(stock);
       return (endPrice - startPrice).toFixed(2);
     },
     getPercentChange(stock) {
-      let priceChange = this.getPriceChange(stock),
+      const priceChange = this.getPriceChange(stock),
         startPrice = this.getStartPrice(stock);
       if (startPrice === 0) return null;
       return ((priceChange / startPrice) * 100).toFixed(2);

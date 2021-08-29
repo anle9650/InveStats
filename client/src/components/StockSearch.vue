@@ -112,9 +112,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 const SharesInputModal = defineAsyncComponent(() =>
-  import(
-    /* webpackChunkName: "shares-input-modal" */"./SharesInputModal.vue"
-  )
+  import(/* webpackChunkName: "shares-input-modal" */ "./SharesInputModal.vue")
 );
 export default {
   name: "stock-search",
@@ -148,33 +146,30 @@ export default {
     },
   },
   methods: {
-    fetchSearchResults() {
+    async fetchSearchResults() {
       if (!this.searchValueChange) return;
 
-      fetch(
-        `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${
-          this.searchValue
-        }&apikey=${
-          this.searchExamples.includes(this.searchValue) ? "demo" : this.apiKey
-        }`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (!data.bestMatches) {
-            this.searchResults = [];
-            return;
-          }
-          this.searchResults = data.bestMatches.map((stock) => {
-            return {
-              symbol: stock["1. symbol"],
-              name: stock["2. name"],
-            };
-          });
-        })
-        .catch((error) => console.log(error));
+      const response = await fetch(
+        `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${this.searchValue}&apikey=${this.searchExamples.includes(this.searchValue) ? "demo" : this.apiKey}`
+      );
+      const data = await response.json();
+
+      if (!data.bestMatches) {
+        this.searchResults = [];
+        return;
+      }
+
+      this.searchResults = data.bestMatches.map((stock) => {
+        return {
+          symbol: stock["1. symbol"],
+          name: stock["2. name"],
+        };
+      });
     },
     getSharesOwned(stock) {
-      let ownedStock = this.stocksOwned.find((ownedStock) => ownedStock.symbol === stock.symbol);
+      let ownedStock = this.stocksOwned.find(
+        (ownedStock) => ownedStock.symbol === stock.symbol
+      );
       return ownedStock?.shares ?? 0;
     },
   },

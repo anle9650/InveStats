@@ -313,41 +313,36 @@ export default {
   },
   methods: {
     async fetchStocks() {
-      const json = await fetch(`api/portfolios/${this.portfolioId}`)
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
-      this.stocks = json.data.portfolio.stocks;
+      const response = await fetch(`api/portfolios/${this.portfolioId}`).then(
+        (response) => response.json()
+      );
+      this.stocks = response.data.portfolio.stocks;
     },
     async fetchIntradayPrices(stock) {
-      let shortenedSymbol = stock.symbol.split(".")[0];
-      const json = await fetch(
+      const shortenedSymbol = stock.symbol.split(".")[0];
+      const response = await fetch(
         `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${shortenedSymbol}&interval=5min&apikey=${
           shortenedSymbol === "IBM" ? "demo" : this.apiKey
         }`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
+      );
+      const data = await response.json();
 
       let intradayPrices = [];
-      for (var datetime in json["Time Series (5min)"]) {
+      for (var datetime in data["Time Series (5min)"]) {
         intradayPrices.push({
           datetime: new Date(datetime.replace(/-/g, "/")).getTime(),
-          open: json["Time Series (5min)"][datetime]["1. open"],
-          high: json["Time Series (5min)"][datetime]["2. high"],
-          low: json["Time Series (5min)"][datetime]["3. low"],
-          close: json["Time Series (5min)"][datetime]["4. close"],
-          volume: json["Time Series (5min)"][datetime]["5. volume"],
+          open: data["Time Series (5min)"][datetime]["1. open"],
+          high: data["Time Series (5min)"][datetime]["2. high"],
+          low: data["Time Series (5min)"][datetime]["3. low"],
+          close: data["Time Series (5min)"][datetime]["4. close"],
+          volume: data["Time Series (5min)"][datetime]["5. volume"],
         });
       }
       intradayPrices = intradayPrices.sort((a, b) => a.datetime - b.datetime);
       stock.intradayPrices = intradayPrices;
     },
     async fetchDailyPrices(stock) {
-      const json = await fetch(
+      const response = await fetch(
         `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${
           stock.symbol
         }&outputsize=full&apikey=${
@@ -357,21 +352,18 @@ export default {
             ? "demo"
             : this.apiKey
         }`
-      )
-        .then((response) => response.json())
-        .catch((error) => {
-          throw error;
-        });
+      );
+      const data = await response.json();
 
       let dailyPrices = [];
-      for (var datetime in json["Time Series (Daily)"]) {
+      for (var datetime in data["Time Series (Daily)"]) {
         dailyPrices.push({
           date: new Date(datetime.replace(/-/g, "/")).getTime(),
-          open: json["Time Series (Daily)"][datetime]["1. open"],
-          high: json["Time Series (Daily)"][datetime]["2. high"],
-          low: json["Time Series (Daily)"][datetime]["3. low"],
-          close: json["Time Series (Daily)"][datetime]["4. close"],
-          volume: json["Time Series (Daily)"][datetime]["5. volume"],
+          open: data["Time Series (Daily)"][datetime]["1. open"],
+          high: data["Time Series (Daily)"][datetime]["2. high"],
+          low: data["Time Series (Daily)"][datetime]["3. low"],
+          close: data["Time Series (Daily)"][datetime]["4. close"],
+          volume: data["Time Series (Daily)"][datetime]["5. volume"],
         });
       }
       dailyPrices = dailyPrices.sort((a, b) => a.date - b.date);
@@ -396,20 +388,22 @@ export default {
           {
             datetime: new Date(),
             price: newStock.intradayPrices.slice(-1)[0].close,
-            shares: newStock.shares ?? 0
+            shares: newStock.shares ?? 0,
           },
         ];
         this.stocks.push(newStock);
         this.apiLocked = false;
-      })
+      });
     },
     addShares(stockToBuy, sharesToAdd) {
-      let existingStock = this.stocks.find((stock) => stock.symbol === stockToBuy.symbol);
+      let existingStock = this.stocks.find(
+        (stock) => stock.symbol === stockToBuy.symbol
+      );
 
       // If the stock does not already exist in this.stocks, add the stock.
       if (!existingStock) {
         stockToBuy.shares = sharesToAdd;
-        this.addStock(stockToBuy).then(() => this.showAlert = true);
+        this.addStock(stockToBuy).then(() => (this.showAlert = true));
         return;
       }
 
@@ -423,7 +417,9 @@ export default {
       this.showAlert = true;
     },
     removeShares(stockToSell, sharesToRemove) {
-      let existingStock = this.stocks.find((stock) => stock.symbol === stockToSell.symbol);
+      let existingStock = this.stocks.find(
+        (stock) => stock.symbol === stockToSell.symbol
+      );
       if (existingStock === undefined) return;
 
       existingStock.shares -= sharesToRemove;

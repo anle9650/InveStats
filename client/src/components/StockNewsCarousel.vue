@@ -34,7 +34,10 @@ export default {
   watch: {
     selectedStock: {
       handler(selectedStock) {
-        if (this.stocks.includes((stock) => stock.symbol === selectedStock.symbol)) return;
+        if (
+          this.stocks.includes((stock) => stock.symbol === selectedStock.symbol)
+        )
+          return;
         this.fetchArticles();
       },
       immediate: true,
@@ -42,7 +45,7 @@ export default {
   },
   computed: {
     selectedStockArticles() {
-      let selectedStock = this.stocks.find(
+      const selectedStock = this.stocks.find(
         (stock) => stock.symbol === this.selectedStock.symbol
       );
       return selectedStock?.articles ?? [];
@@ -54,55 +57,48 @@ export default {
         ];
       return this.selectedStockArticles.map((article) => {
         return /*html*/ ` 
-            <div class="slide card">
-                ${
-                  article.urlToImage
-                    ? `<img class="card-img-top overflow-hidden" src="${article.urlToImage}" alt="Card image cap">`
-                    : ``
-                }
-                <div class="card-body">
-                    <h5 class="card-title">${article.title}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">${
-                      this.selectedStock.symbol
-                    }</h6>
-                    <p class="card-text">${
-                      new DOMParser().parseFromString(
-                        article.description,
-                        "text/html"
-                      ).body.innerHTML
-                    }</p>
-                    <a href="${article.url}" class="card-link">${
-          article.source
-        }</a>
-                </div>
-            </div>
+          <div class="slide card">
+              ${article.urlToImage? `<img class="card-img-top overflow-hidden" src="${article.urlToImage}" alt="Card image cap">` : ``}
+              <div class="card-body">
+                  <h5 class="card-title">${article.title}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">
+                    ${this.selectedStock.symbol}
+                  </h6>
+                  <p class="card-text">
+                    ${new DOMParser().parseFromString(article.description, "text/html").body.innerHTML}
+                  </p>
+                  <a href="${article.url}" class="card-link">
+                    ${article.source}
+                  </a>
+              </div>
+          </div>
         `;
       });
     },
   },
   methods: {
-    fetchArticles() {
-      fetch(
+    async fetchArticles() {
+      const response = await fetch(
         `api/news?q=${this.selectedStock.name}&from=${this.date.toISOString().split("T")[0]}`
-      )
-        .then((response) => response.json())
-        .then((json) => {
-          let articles = json.articles
-            .slice(0, this.numberOfArticles)
-            .map((article) => {
-              return {
-                source: article.source.name,
-                title: article.title,
-                description: article.description,
-                url: article.url,
-                urlToImage: article.urlToImage,
-              };
-            });
-          this.stocks.push({
-            ...this.selectedStock,
-            articles,
-          });
+      );
+      const data = await response.json();
+
+      const articles = data.articles
+        .slice(0, this.numberOfArticles)
+        .map((article) => {
+          return {
+            source: article.source.name,
+            title: article.title,
+            description: article.description,
+            url: article.url,
+            urlToImage: article.urlToImage,
+          };
         });
+
+      this.stocks.push({
+        ...this.selectedStock,
+        articles,
+      });
     },
   },
 };
