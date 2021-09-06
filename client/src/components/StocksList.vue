@@ -2,7 +2,17 @@
   <div style="display: contents">
     <div class="shadow card sticky-menu">
       <div class="card-body">
-        <h5 class="card-title">Stocks</h5>
+        <h5 class="card-title d-flex w-100 justify-content-between">
+          Stocks
+          <button 
+            class="btn btn-outline-primary btn-sm"
+            data-bs-target="#transactionsModal"
+            data-bs-toggle="modal"
+            data-bs-dismiss="modal"
+          >
+            Past Transactions
+          </button>
+        </h5>
       </div>
       <div class="list-group list-group-flush">
         <transition-group name="list">
@@ -55,6 +65,52 @@
         </transition-group>
       </div>
     </div>
+    <!-- Transactions Modal -->
+    <div
+      class="modal fade"
+      id="transactionsModal"
+      tabindex="-1"
+      aria-labelledby="transactionsModal"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="transactionsModalLabel">
+              Past Transactions
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Symbol</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Shares</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(transaction, index) in allTransactions" :key="index">
+                  <td>{{ new Date(transaction.datetime).toLocaleDateString() }}</td>
+                  <td>{{ transaction.shares >= 0 ? "Buy" : "Sell" }}</td>
+                  <td>{{ transaction.symbol }}</td>
+                  <td>${{ transaction.price.toFixed(2) }}</td>
+                  <td>{{ Math.abs(transaction.shares) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
     <shares-input-modal
       id="buySharesInputModal"
       type="buy"
@@ -103,7 +159,7 @@ export default {
           allTransactions.push({ ...transaction, symbol: stock.symbol });
         });
       });
-      allTransactions.sort((a, b) => b.datetime - a.datetime);
+      allTransactions = allTransactions.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
       return allTransactions;
     }
   },

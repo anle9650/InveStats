@@ -383,7 +383,7 @@ export default {
         newStock.transactions = [
           {
             datetime: new Date(),
-            price: newStock.intradayPrices.slice(-1)[0].close,
+            price: parseFloat(newStock.intradayPrices.slice(-1)[0].close),
             shares: newStock.shares ?? 0,
           },
         ];
@@ -407,7 +407,7 @@ export default {
       existingStock.shares += sharesToAdd;
       existingStock.transactions.push({
         datetime: new Date(),
-        price: existingStock.intradayPrices.slice(-1)[0].close,
+        price: parseFloat(existingStock.intradayPrices.slice(-1)[0].close),
         shares: sharesToAdd,
       });
       this.showAlert = true;
@@ -421,7 +421,7 @@ export default {
       existingStock.shares -= sharesToRemove;
       existingStock.transactions.push({
         datetime: new Date(),
-        price: existingStock.intradayPrices.slice(-1)[0].close,
+        price: parseFloat(existingStock.intradayPrices.slice(-1)[0].close),
         shares: -sharesToRemove,
       });
       this.showAlert = true;
