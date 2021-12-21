@@ -6,7 +6,7 @@ InveStats is a responsive stock trading app, where users can buy and sell stocks
 
 ## Demo
 
-A demo of the app can be visited at: https://investats2.herokuapp.com
+Demo of the app hosted at: https://investats2.herokuapp.com
 
 ## Usage
 
@@ -25,7 +25,7 @@ node server/StockSeed.js
 npm start
 ```
 
-Visit in browser: http://localhost:3000
+> Visit in browser: http://localhost:3000
 
 ## Directory structure
 
@@ -56,3 +56,10 @@ Visit in browser: http://localhost:3000
 ├── .gitignore                     // gitignore 
 └── package.json                   // package.json
 ```
+
+## Acknowledgments
+
+* [apexcharts](https://apexcharts.com/docs/vue-charts/)
+* [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
+* [Alpha Vantage](https://www.alphavantage.co)
+* [News Api](https://newsapi.org)
