@@ -62,4 +62,4 @@ npm start
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
 * [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
 * [Alpha Vantage](https://www.alphavantage.co)
-* [News Api](https://newsapi.org)
+* [News API](https://newsapi.org)
