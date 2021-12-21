@@ -45,6 +45,8 @@ npm start
 │   └── package.json               // package.json
 ├── server                         // server build
 │   ├── public                     // public assets 
+│   │   ├── css                    // css
+│   │   ├── js                     // js
 │   │   ├── favicon.ico            // favicon
 │   │   └── index.html             // html template
 │   ├── models                     // models
