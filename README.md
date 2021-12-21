@@ -76,6 +76,7 @@ npm start
 
 ## Acknowledgments
 
+* [Bootstrap](https://getbootstrap.com)
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
 * [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
 * [mongoose](https://mongoosejs.com)
