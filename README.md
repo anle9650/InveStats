@@ -23,7 +23,7 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 * [Vue](https://v3.vuejs.org)
 * [Node](https://nodejs.org/en/)
 
-## Usage
+## Getting Started
 
 ```bash
 # Clone project 
