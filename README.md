@@ -8,6 +8,14 @@ InveStats is a responsive stock trading app, where users can buy and sell stocks
 
 Demo of the app hosted at: https://investats2.herokuapp.com
 
+## Features
+
+* Stock price line and candlestick charts for past day, week, month, MTD, YTD, 1 year, and 5 year time intervals.
+* Search, buy, and sell stocks by stock symbol or name.
+* Get personal performance stats, and general stock performance stats.
+* Donut chart visualizing total stock holdings.
+* News ticker displaying most recent news for all stocks held.
+
 ## Technologies Used
 
 * [MongoDB](https://www.mongodb.com)
