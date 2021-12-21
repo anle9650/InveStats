@@ -8,6 +8,13 @@ InveStats is a responsive stock trading app, where users can buy and sell stocks
 
 Demo of the app hosted at: https://investats2.herokuapp.com
 
+## Technologies Used
+
+* [MongoDB](https://www.mongodb.com)
+* [Express](https://expressjs.com)
+* [Vue](https://v3.vuejs.org)
+* [Node](https://nodejs.org/en/)
+
 ## Usage
 
 ```bash
@@ -27,7 +34,7 @@ npm start
 
 > Visit in browser: http://localhost:3000
 
-## Directory structure
+## Directory Structure
 
 ```
 ├── client                         // client build
@@ -63,5 +70,6 @@ npm start
 
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
 * [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
+* [mongoose](https://mongoosejs.com)
 * [Alpha Vantage](https://www.alphavantage.co)
 * [News API](https://newsapi.org)
