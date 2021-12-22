@@ -1,6 +1,6 @@
 # InveStats
 
-InveStats is a responsive stock trading app, where users can buy and sell from thousands of stocks. Single page application featuring up-to-date price charts, financial data, and news are displayed so that users can make the most informed decision.
+InveStats is a responsive single page application, where users can buy and sell from thousands of stocks. Features up-to-date price charts, financial data, and news are displayed so that users can make the most informed decision.
 
 <img width="1437" alt="Screen Shot 2021-12-20 at 2 32 52 PM" src="https://user-images.githubusercontent.com/77894900/146835623-20ddb949-3747-4b96-a915-a69d18d5a18f.png">
 
