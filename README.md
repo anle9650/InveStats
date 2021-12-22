@@ -19,6 +19,7 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 ## Technologies
 
 * [MongoDB](https://www.mongodb.com)
+* [mongoose](https://mongoosejs.com)
 * [Express](https://expressjs.com)
 * [Vue](https://v3.vuejs.org)
 * [Node](https://nodejs.org/en/)
@@ -79,6 +80,5 @@ npm start
 
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
 * [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
-* [mongoose](https://mongoosejs.com)
 * [Alpha Vantage](https://www.alphavantage.co)
 * [News API](https://newsapi.org)
