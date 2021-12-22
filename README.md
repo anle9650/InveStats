@@ -16,12 +16,13 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 * Donut chart visualizing total stock holdings.
 * News ticker displaying most recent news for all stocks held.
 
-## Technologies Used
+## Technologies
 
 * [MongoDB](https://www.mongodb.com)
 * [Express](https://expressjs.com)
 * [Vue](https://v3.vuejs.org)
 * [Node](https://nodejs.org/en/)
+* [Bootstrap](https://getbootstrap.com)
 
 ## Getting Started
 
@@ -76,7 +77,6 @@ npm start
 
 ## Acknowledgments
 
-* [Bootstrap](https://getbootstrap.com)
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
 * [vue-carousel](https://www.npmjs.com/package/@chenfengyuan/vue-carousel)
 * [mongoose](https://mongoosejs.com)
