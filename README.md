@@ -10,7 +10,7 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 
 ## Features
 
-* Stock price line and candlestick charts for past day, week, month, MTD, YTD, 1 year, and 5 year time intervals.
+* Real up-to-date stock price line and candlestick charts. Choose between past day, week, month, MTD, YTD, 1 year, and 5 year time intervals.
 * Search, buy, and sell stocks by stock symbol or name.
 * Get personal performance stats, and general stock performance stats.
 * Donut chart visualizing total stock holdings.
