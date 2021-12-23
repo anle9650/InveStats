@@ -21,9 +21,9 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 * [MongoDB](https://www.mongodb.com)
 * [mongoose](https://mongoosejs.com)
 * [Express](https://expressjs.com)
-* [Vue](https://v3.vuejs.org)
+* [Vue 3](https://v3.vuejs.org)
 * [Node](https://nodejs.org/en/)
-* [Bootstrap](https://getbootstrap.com)
+* [Bootstrap 5](https://getbootstrap.com)
 
 ## Getting Started
 
