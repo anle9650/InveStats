@@ -76,6 +76,16 @@ npm start
 └── package.json                   // package.json
 ```
 
+## API Documentation
+
+### Fetch
+``` bash
+GET /api/portfolios/:id
+GET /api/news?q={symbol}&from={date}
+```
+
+### 
+
 ## Acknowledgments
 
 * [apexcharts](https://apexcharts.com/docs/vue-charts/)
