@@ -19,7 +19,7 @@ Demo of the app hosted at: https://investats2.herokuapp.com
 ## Technologies
 
 * [MongoDB](https://www.mongodb.com)
-* [mongoose](https://mongoosejs.com)
+  * [mongoose](https://mongoosejs.com)
 * [Express](https://expressjs.com)
 * [Vue 3](https://v3.vuejs.org)
 * [Node](https://nodejs.org/en/)
