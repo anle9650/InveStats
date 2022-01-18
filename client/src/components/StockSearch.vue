@@ -100,7 +100,7 @@
       id="searchResultsSellModal"
       type="sell"
       :symbol="stockToSell ? stockToSell.symbol : null"
-      :sharesOwned="stockToSell ? stockToSell.shares : 0"
+      :sharesOwned="stockToSell ? getSharesOwned(stockToSell) : 0"
       previousModal="#searchResultsModal"
       @confirm-shares="
         (confirmedShares) => $emit('sellStock', stockToSell, confirmedShares)

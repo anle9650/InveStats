@@ -163,6 +163,7 @@ const StockNewsCarousel = defineAsyncComponent(() =>
     /* webpackChunkName: "stock-news-carousel" */ "./components/StockNewsCarousel.vue"
   )
 );
+
 export default {
   name: "App",
   components: {
